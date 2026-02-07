@@ -1,6 +1,13 @@
 baseURL = "https://example.com/"
 languageCode = "en-us"
 title = "Hedgerules"
+themesDir = "../"
+theme = "hugo-theme-hedgerules"
+
+# Enable Hedgerules output formats on the home page.
+# The theme defines the formats; this tells Hugo to generate them.
+[outputs]
+  home = ["HTML", "cfheaders", "redirects"]
 
 [params]
   description = "Hugo Edge Rules for CloudFront"
@@ -13,28 +20,6 @@ title = "Hedgerules"
       X-Content-Type-Options = "nosniff"
       X-Frame-Options = "DENY"
       Referrer-Policy = "strict-origin-when-cross-origin"
-
-[outputs]
-  # Generate _cfheaders.json alongside regular HTML output
-  home = ["HTML", "cfheaders", "redirects"]
-
-[outputFormats]
-  [outputFormats.cfheaders]
-    baseName = "_cfheaders"
-    isPlainText = true
-    mediaType = "application/json"
-    notAlternative = true
-  [outputFormats.redirects]
-    baseName = "_redirects"
-    isPlainText = true
-    mediaType = "text/redirects"
-    notAlternative = true
-
-[mediaTypes]
-  [mediaTypes."application/json"]
-    suffixes = ["json"]
-  [mediaTypes."text/redirects"]
-    suffixes = [""]
 
 # Hugo deploy target for S3
 # Run: hugo deploy --target mysite

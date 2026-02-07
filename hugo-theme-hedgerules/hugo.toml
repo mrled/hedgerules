@@ -1,0 +1,21 @@
+[module]
+  [module.hugoVersion]
+    min = "0.128.0"
+
+# Output formats for Hedgerules.
+# The theme defines these so sites that import it get them automatically.
+[outputFormats]
+  [outputFormats.cfheaders]
+    baseName = "_cfheaders"
+    isPlainText = true
+    mediaType = "application/json"
+    notAlternative = true
+  [outputFormats.redirects]
+    baseName = "_redirects"
+    isPlainText = true
+    mediaType = "text/redirects"
+    notAlternative = true
+
+[mediaTypes]
+  [mediaTypes."text/redirects"]
+    suffixes = [""]
