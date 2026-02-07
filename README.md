@@ -1,5 +1,8 @@
 # Hedgerules
 
+> [!WARNING]
+> Current status: pre-alpha AI slop.
+
 Hedgerules (from Hugo Edge Rules) is designed to work with `hugo deploy` and AWS CloudFront.
 
 When deploying to CloudFront with S3 Static Website Hosting,
