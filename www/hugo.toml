@@ -27,19 +27,6 @@ theme = "hugo-theme-hedgerules"
   [[deployment.targets]]
     name = "mysite"
     URL = "s3://my-hugo-site-bucket?region=us-east-1"
-    cloudFrontDistributionID = "E1234567890ABC"
-
-  [[deployment.matchers]]
-    pattern = "^.+\\.(js|css|svg|ttf|woff|woff2)$"
-    cacheControl = "max-age=31536000, immutable"
-    gzip = true
-
-  [[deployment.matchers]]
-    pattern = "^.+\\.(png|jpg|jpeg|gif|webp|ico)$"
-    cacheControl = "max-age=31536000, immutable"
-    gzip = false
-
-  [[deployment.matchers]]
-    pattern = "^.+\\.(html|xml|json|txt)$"
-    cacheControl = "max-age=3600"
-    gzip = true
+    cloudFrontDistributionID = "MY-ID-HERE"
+    invalidateCDN = true
+    maxDeletes = -1
