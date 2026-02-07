@@ -152,6 +152,17 @@ func runDeploy(args []string) {
 	}
 	fmt.Fprintf(os.Stderr, "Validation passed\n")
 
+	// Report KVS capacity usage
+	redirectStats := redirectData.Stats()
+	headerStats := headerData.Stats()
+	fmt.Fprintf(os.Stderr, "\nKVS capacity:\n")
+	fmt.Fprintf(os.Stderr, "  Redirects: %d keys, %d / %d bytes (%.1f%%)\n",
+		redirectStats.NumKeys, redirectStats.TotalBytes, kvs.MaxTotalBytes,
+		float64(redirectStats.TotalBytes)/float64(kvs.MaxTotalBytes)*100)
+	fmt.Fprintf(os.Stderr, "  Headers:   %d keys, %d / %d bytes (%.1f%%)\n",
+		headerStats.NumKeys, headerStats.TotalBytes, kvs.MaxTotalBytes,
+		float64(headerStats.TotalBytes)/float64(kvs.MaxTotalBytes)*100)
+
 	// Step 3: Dry run - print plan and exit
 	if *dryRun {
 		fmt.Println("\n=== Redirects ===")

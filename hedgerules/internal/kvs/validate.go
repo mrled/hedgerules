@@ -18,6 +18,21 @@ func (e ValidationError) Error() string {
 	return fmt.Sprintf("%s: %s", e.Key, e.Message)
 }
 
+// DataStats holds summary size information for a Data set.
+type DataStats struct {
+	NumKeys    int
+	TotalBytes int
+}
+
+// Stats returns the number of keys and total byte size of the data.
+func (d *Data) Stats() DataStats {
+	total := 0
+	for _, e := range d.Entries {
+		total += len([]byte(e.Key)) + len([]byte(e.Value))
+	}
+	return DataStats{NumKeys: len(d.Entries), TotalBytes: total}
+}
+
 // Validate checks all KVS constraints. Returns nil if valid.
 func (d *Data) Validate() []ValidationError {
 	var errs []ValidationError
