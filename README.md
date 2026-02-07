@@ -50,3 +50,6 @@ Tests:
 Future ideas:
 
 - Implement support for other clouds, particularly Azure and GCP since Hugo Deploy supports those.
+- Have Hedgerules parse the Hugo config file for special site parameters
+  so the user can define the Function and KVS object names in one place,
+  next to `hugo deploy` settings.
