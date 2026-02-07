@@ -1,4 +1,4 @@
-{{- /* The _cfheaders.json file template.
+{{- /* The _hedge_headers.json file template.
 
 Outputs a JSON file mapping paths to objects of HTTP headers.
 Format: {"/path/": {"Header-Name": "value"}, "/": {"Default-Header": "value"}}
@@ -44,3 +44,5 @@ Exact-path headers take priority over root defaults.
 
 {{- /* Output all the headers as JSON */ -}}
 {{ $headers | jsonify (dict "indent" "  ") -}}
+
+{{- /* -*- mode: go-template; -*- */ -}}

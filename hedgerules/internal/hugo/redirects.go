@@ -10,15 +10,15 @@ import (
 	"github.com/micahrl/hedgerules/internal/kvs"
 )
 
-// ParseRedirects reads the _redirects file and returns redirect entries.
+// ParseRedirects reads the _hedge_redirects.txt file and returns redirect entries.
 // Lines are whitespace-separated: source destination [status].
 // Empty lines and lines starting with # are ignored.
 func ParseRedirects(outputDir string) ([]kvs.Entry, error) {
-	path := filepath.Join(outputDir, "_redirects")
+	path := filepath.Join(outputDir, "_hedge_redirects.txt")
 
 	f, err := os.Open(path)
 	if os.IsNotExist(err) {
-		return nil, nil // No _redirects file is fine
+		return nil, nil // No _hedge_redirects.txt file is fine
 	}
 	if err != nil {
 		return nil, fmt.Errorf("opening %s: %w", path, err)

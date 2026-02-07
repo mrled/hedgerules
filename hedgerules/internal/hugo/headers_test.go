@@ -18,7 +18,7 @@ func TestParseHeaders(t *testing.T) {
     "Cache-Control": "max-age=3600"
   }
 }`
-	os.WriteFile(filepath.Join(dir, "_cfheaders.json"), []byte(content), 0644)
+	os.WriteFile(filepath.Join(dir, "_hedge_headers.json"), []byte(content), 0644)
 
 	entries, err := ParseHeaders(dir)
 	if err != nil {
@@ -69,7 +69,7 @@ func TestParseHeaders_NoFile(t *testing.T) {
 
 func TestParseHeaders_InvalidJSON(t *testing.T) {
 	dir := t.TempDir()
-	os.WriteFile(filepath.Join(dir, "_cfheaders.json"), []byte("{invalid"), 0644)
+	os.WriteFile(filepath.Join(dir, "_hedge_headers.json"), []byte("{invalid"), 0644)
 
 	_, err := ParseHeaders(dir)
 	if err == nil {
@@ -79,7 +79,7 @@ func TestParseHeaders_InvalidJSON(t *testing.T) {
 
 func TestParseHeaders_EmptyJSON(t *testing.T) {
 	dir := t.TempDir()
-	os.WriteFile(filepath.Join(dir, "_cfheaders.json"), []byte("{}"), 0644)
+	os.WriteFile(filepath.Join(dir, "_hedge_headers.json"), []byte("{}"), 0644)
 
 	entries, err := ParseHeaders(dir)
 	if err != nil {

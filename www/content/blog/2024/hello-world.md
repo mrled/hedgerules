@@ -10,7 +10,7 @@ CloudFrontHeaders:
 
 This is a test blog post. It exercises several Hedgerules features:
 
-- **Hugo aliases**: This page has two aliases (`/hello/` and `/blog/first-post/`), which generate redirect entries in `_redirects`.
+- **Hugo aliases**: This page has two aliases (`/hello/` and `/blog/first-post/`), which generate redirect entries in `_hedge_redirects.txt`.
 - **Custom headers**: This page sets `X-Blog-Post` and `Cache-Control` headers via `CloudFrontHeaders` frontmatter.
 - **Nested directory**: Located at `/blog/2024/hello-world/`, this tests deep directory index redirects.
 

@@ -7,13 +7,13 @@ theme = "hugo-theme-hedgerules"
 # Enable Hedgerules output formats on the home page.
 # The theme defines the formats; this tells Hugo to generate them.
 [outputs]
-  home = ["HTML", "cfheaders", "redirects"]
+  home = ["HTML", "hedgeheaders", "hedgeredirects"]
 
 [params]
   description = "Hugo Edge Rules for CloudFront"
 
   # Global headers applied to all paths via the root "/" pattern.
-  # These are merged into _cfheaders.json at build time.
+  # These are merged into _hedge_headers.json at build time.
   # Per-page headers (from frontmatter) override these for specific pages.
   [params.CloudFrontNonPagePathHeaders]
     [params.CloudFrontNonPagePathHeaders."/"]

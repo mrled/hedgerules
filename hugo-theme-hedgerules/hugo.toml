@@ -5,17 +5,13 @@
 # Output formats for Hedgerules.
 # The theme defines these so sites that import it get them automatically.
 [outputFormats]
-  [outputFormats.cfheaders]
-    baseName = "_cfheaders"
+  [outputFormats.hedgeheaders]
+    baseName = "_hedge_headers"
     isPlainText = true
     mediaType = "application/json"
     notAlternative = true
-  [outputFormats.redirects]
-    baseName = "_redirects"
+  [outputFormats.hedgeredirects]
+    baseName = "_hedge_redirects"
     isPlainText = true
-    mediaType = "text/redirects"
+    mediaType = "text/plain"
     notAlternative = true
-
-[mediaTypes]
-  [mediaTypes."text/redirects"]
-    suffixes = [""]

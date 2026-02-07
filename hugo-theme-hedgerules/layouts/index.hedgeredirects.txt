@@ -1,6 +1,6 @@
-{{- /* The _redirects file template.
+{{- /* The _hedge_redirects.txt file template.
 
-Outputs a Netlify-style redirects file that Hedgerules reads.
+Outputs a redirects file that Hedgerules reads.
 Each line: /source /destination
 
 Sources:

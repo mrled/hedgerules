@@ -7,31 +7,26 @@ Complete reference for all Hedgerules configuration options in `hugo.toml`.
 
 ## Output formats
 
-Register the `cfheaders` output format so Hugo generates `_cfheaders.json`:
+Enable the Hedgerules output formats on the home page:
 
 ```toml
 [outputs]
-  home = ["HTML", "cfheaders"]
+  home = ["HTML", "hedgeheaders", "hedgeredirects"]
+```
 
+If you're using the `hugo-theme-hedgerules` theme, the format definitions are provided automatically. If not, add them manually:
+
+```toml
 [outputFormats]
-  [outputFormats.cfheaders]
-    baseName = "_cfheaders"
+  [outputFormats.hedgeheaders]
+    baseName = "_hedge_headers"
     isPlainText = true
     mediaType = "application/json"
     notAlternative = true
-```
-
-To also generate a `_redirects` file from Hugo aliases:
-
-```toml
-[outputs]
-  home = ["HTML", "cfheaders", "redirects"]
-
-[outputFormats]
-  [outputFormats.redirects]
-    baseName = "_redirects"
+  [outputFormats.hedgeredirects]
+    baseName = "_hedge_redirects"
     isPlainText = true
-    mediaType = "text/redirects"
+    mediaType = "text/plain"
     notAlternative = true
 ```
 
@@ -58,7 +53,7 @@ CloudFrontHeaders:
 ---
 ```
 
-These are added to `_cfheaders.json` keyed by the page's `RelPermalink`. They override root headers with the same name.
+These are added to `_hedge_headers.json` keyed by the page's `RelPermalink`. They override root headers with the same name.
 
 ## Custom redirects
 
@@ -68,7 +63,7 @@ These are added to `_cfheaders.json` keyed by the page's `RelPermalink`. They ov
   "/legacy/url" = "/current/url/"
 ```
 
-These are written to the `_redirects` file alongside Hugo alias redirects.
+These are written to `_hedge_redirects.txt` alongside Hugo alias redirects.
 
 ## Hugo deploy target
 
@@ -84,8 +79,8 @@ These are written to the `_redirects` file alongside Hugo alias redirects.
 
 | File | Description | Consumed by |
 |------|-------------|-------------|
-| `_cfheaders.json` | Path-to-headers mapping | `hedgerules deploy` (headers KVS) |
-| `_redirects` | Source-destination redirect pairs | `hedgerules deploy` (redirects KVS) |
+| `_hedge_headers.json` | Path-to-headers mapping | `hedgerules deploy` (headers KVS) |
+| `_hedge_redirects.txt` | Source-destination redirect pairs | `hedgerules deploy` (redirects KVS) |
 
 ## KVS limits
 

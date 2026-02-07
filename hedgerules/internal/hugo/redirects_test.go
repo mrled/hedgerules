@@ -16,7 +16,7 @@ func TestParseRedirects(t *testing.T) {
 
 /with-spaces   /destination
 `
-	os.WriteFile(filepath.Join(dir, "_redirects"), []byte(content), 0644)
+	os.WriteFile(filepath.Join(dir, "_hedge_redirects.txt"), []byte(content), 0644)
 
 	entries, err := ParseRedirects(dir)
 	if err != nil {
@@ -58,7 +58,7 @@ func TestParseRedirects_NoFile(t *testing.T) {
 
 func TestParseRedirects_EmptyFile(t *testing.T) {
 	dir := t.TempDir()
-	os.WriteFile(filepath.Join(dir, "_redirects"), []byte(""), 0644)
+	os.WriteFile(filepath.Join(dir, "_hedge_redirects.txt"), []byte(""), 0644)
 
 	entries, err := ParseRedirects(dir)
 	if err != nil {

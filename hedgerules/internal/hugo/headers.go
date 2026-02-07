@@ -10,11 +10,11 @@ import (
 	"github.com/micahrl/hedgerules/internal/kvs"
 )
 
-// ParseHeaders reads _cfheaders.json and returns header entries.
+// ParseHeaders reads _hedge_headers.json and returns header entries.
 // The JSON format is: { "/path": { "Header-Name": "value", ... }, ... }
 // Each entry's value is newline-delimited "Header-Name: value" strings.
 func ParseHeaders(outputDir string) ([]kvs.Entry, error) {
-	path := filepath.Join(outputDir, "_cfheaders.json")
+	path := filepath.Join(outputDir, "_hedge_headers.json")
 
 	data, err := os.ReadFile(path)
 	if os.IsNotExist(err) {

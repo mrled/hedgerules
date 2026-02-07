@@ -9,7 +9,7 @@ This page has Hugo aliases that test redirect generation.
 
 ## Expected redirects
 
-The following redirects should be generated in `_redirects`:
+The following redirects should be generated in `_hedge_redirects.txt`:
 
 | Source | Destination |
 |--------|-------------|

@@ -118,20 +118,20 @@ func runDeploy(args []string) {
 	}
 	fmt.Fprintf(os.Stderr, "Found %d directory redirects\n", len(dirEntries))
 
-	fmt.Fprintf(os.Stderr, "Parsing _redirects...\n")
+	fmt.Fprintf(os.Stderr, "Parsing _hedge_redirects.txt...\n")
 	fileEntries, err := hugo.ParseRedirects(cfg.OutputDir)
 	if err != nil {
-		fatal("parsing _redirects: %v", err)
+		fatal("parsing _hedge_redirects.txt: %v", err)
 	}
 	fmt.Fprintf(os.Stderr, "Found %d file redirects\n", len(fileEntries))
 
 	redirectEntries := hugo.MergeRedirects(dirEntries, fileEntries)
 	fmt.Fprintf(os.Stderr, "Total redirects after merge: %d\n", len(redirectEntries))
 
-	fmt.Fprintf(os.Stderr, "Parsing _cfheaders.json...\n")
+	fmt.Fprintf(os.Stderr, "Parsing _hedge_headers.json...\n")
 	headerEntries, err := hugo.ParseHeaders(cfg.OutputDir)
 	if err != nil {
-		fatal("parsing _cfheaders.json: %v", err)
+		fatal("parsing _hedge_headers.json: %v", err)
 	}
 	fmt.Fprintf(os.Stderr, "Found %d header entries\n", len(headerEntries))
 

@@ -17,23 +17,18 @@ This guide walks you through deploying a Hugo site to AWS CloudFront using Hedge
 go install github.com/yourorg/hedgerules@latest
 ```
 
-## 2. Add the _cfheaders.json template
+## 2. Add the _hedge_headers.json template
 
-Copy the `index.cfheaders.json` layout from the Hedgerules example site into your Hugo site's `layouts/` directory. This template generates a `_cfheaders.json` file in your build output that maps URL paths to HTTP response headers.
+Copy the `index.hedgeheaders.json` layout from the Hedgerules example site into your Hugo site's `layouts/` directory. This template generates a `_hedge_headers.json` file in your build output that maps URL paths to HTTP response headers.
 
 You also need to register the output format in your `hugo.toml`:
 
 ```toml
 [outputs]
-  home = ["HTML", "cfheaders"]
-
-[outputFormats]
-  [outputFormats.cfheaders]
-    baseName = "_cfheaders"
-    isPlainText = true
-    mediaType = "application/json"
-    notAlternative = true
+  home = ["HTML", "hedgeheaders", "hedgeredirects"]
 ```
+
+The output format definitions are provided by the theme. If you're not using the theme, see the [Configuration Reference](/docs/configuration/) for the full output format config.
 
 ## 3. Configure headers in hugo.toml
 
@@ -62,7 +57,7 @@ CloudFrontHeaders:
 hugo
 ```
 
-This produces `public/` with `_cfheaders.json` and `_redirects` alongside your HTML.
+This produces `public/` with `_hedge_headers.json` and `_hedge_redirects.txt` alongside your HTML.
 
 ## 5. Deploy edge rules
 
@@ -85,8 +80,8 @@ This uploads your site to S3 and invalidates the CloudFront cache.
 When you run `hedgerules deploy`, it:
 
 1. **Scans directories** in your build output to generate index redirects (`/path` -> `/path/`)
-2. **Reads `_redirects`** for Hugo alias redirects and custom redirects
-3. **Reads `_cfheaders.json`** for custom response headers
+2. **Reads `_hedge_redirects.txt`** for Hugo alias redirects and custom redirects
+3. **Reads `_hedge_headers.json`** for custom response headers
 4. **Uploads redirect entries** to a CloudFront KVS (used by the viewer-request function)
 5. **Uploads header entries** to a CloudFront KVS (used by the viewer-response function)
 
