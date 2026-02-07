@@ -1,0 +1,60 @@
+baseURL = "https://example.com/"
+languageCode = "en-us"
+title = "Hedgerules"
+
+[params]
+  description = "Hugo Edge Rules for CloudFront"
+
+  # Global headers applied to all paths via the root "/" pattern.
+  # These are merged into _cfheaders.json at build time.
+  # Per-page headers (from frontmatter) override these for specific pages.
+  [params.CloudFrontNonPagePathHeaders]
+    [params.CloudFrontNonPagePathHeaders."/"]
+      X-Content-Type-Options = "nosniff"
+      X-Frame-Options = "DENY"
+      Referrer-Policy = "strict-origin-when-cross-origin"
+
+[outputs]
+  # Generate _cfheaders.json alongside regular HTML output
+  home = ["HTML", "cfheaders", "redirects"]
+
+[outputFormats]
+  [outputFormats.cfheaders]
+    baseName = "_cfheaders"
+    isPlainText = true
+    mediaType = "application/json"
+    notAlternative = true
+  [outputFormats.redirects]
+    baseName = "_redirects"
+    isPlainText = true
+    mediaType = "text/redirects"
+    notAlternative = true
+
+[mediaTypes]
+  [mediaTypes."application/json"]
+    suffixes = ["json"]
+  [mediaTypes."text/redirects"]
+    suffixes = [""]
+
+# Hugo deploy target for S3
+# Run: hugo deploy --target mysite
+[deployment]
+  [[deployment.targets]]
+    name = "mysite"
+    URL = "s3://my-hugo-site-bucket?region=us-east-1"
+    cloudFrontDistributionID = "E1234567890ABC"
+
+  [[deployment.matchers]]
+    pattern = "^.+\\.(js|css|svg|ttf|woff|woff2)$"
+    cacheControl = "max-age=31536000, immutable"
+    gzip = true
+
+  [[deployment.matchers]]
+    pattern = "^.+\\.(png|jpg|jpeg|gif|webp|ico)$"
+    cacheControl = "max-age=31536000, immutable"
+    gzip = false
+
+  [[deployment.matchers]]
+    pattern = "^.+\\.(html|xml|json|txt)$"
+    cacheControl = "max-age=3600"
+    gzip = true
