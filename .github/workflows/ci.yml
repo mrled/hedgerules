@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  hugo:
+    name: Build & Deploy Hugo Site
+    if: >-
+      github.event_name == 'push' ||
+      contains(join(github.event.pull_request.*.filename, ','), 'www/') ||
+      contains(join(github.event.pull_request.*.filename, ','), 'hugo-theme-hedgerules/')
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: latest
+          extended: true
+
+      - name: Build
+        run: cd www && hugo --environment production
+
+      - name: Upload Pages artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: www/public/production
+
+      - name: Deploy to GitHub Pages
+        if: github.event_name == 'push'
+        id: deploy
+        uses: actions/deploy-pages@v4
+
+  hedgerules:
+    name: Build hedgerules
+    if: >-
+      github.event_name == 'push' ||
+      contains(join(github.event.pull_request.*.filename, ','), 'hedgerules/')
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: hedgerules/go.mod
+
+      - name: Test
+        run: cd hedgerules && go test ./...
+
+      - name: Build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          cd hedgerules
+          go build -ldflags "-X main.version=nightly-${GITHUB_SHA::8}" \
+            -o ../hedgerules-${{ matrix.goos }}-${{ matrix.goarch }} \
+            ./cmd/hedgerules
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hedgerules-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: hedgerules-${{ matrix.goos }}-${{ matrix.goarch }}
+          retention-days: 30
