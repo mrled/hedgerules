@@ -80,8 +80,8 @@ func DeployFunction(ctx context.Context, client CFClient, name string, code []by
 			IfMatch:      &etag,
 			FunctionCode: code,
 			FunctionConfig: &cftypes.FunctionConfig{
-				Comment:                  strPtr(fmt.Sprintf("Managed by hedgerules: %s", name)),
-				Runtime:                  runtime,
+				Comment:                   strPtr(fmt.Sprintf("Managed by hedgerules: %s", name)),
+				Runtime:                   runtime,
 				KeyValueStoreAssociations: kvAssoc,
 			},
 		})
@@ -95,8 +95,8 @@ func DeployFunction(ctx context.Context, client CFClient, name string, code []by
 			Name:         &name,
 			FunctionCode: code,
 			FunctionConfig: &cftypes.FunctionConfig{
-				Comment:                  strPtr(fmt.Sprintf("Managed by hedgerules: %s", name)),
-				Runtime:                  runtime,
+				Comment:                   strPtr(fmt.Sprintf("Managed by hedgerules: %s", name)),
+				Runtime:                   runtime,
 				KeyValueStoreAssociations: kvAssoc,
 			},
 		})

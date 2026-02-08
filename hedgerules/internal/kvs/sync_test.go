@@ -89,9 +89,9 @@ func TestComputeSyncPlan_NoChanges(t *testing.T) {
 func TestComputeSyncPlan_Mixed(t *testing.T) {
 	desired := &Data{
 		Entries: []Entry{
-			{Key: "/keep", Value: "/keep/"},      // unchanged
+			{Key: "/keep", Value: "/keep/"},       // unchanged
 			{Key: "/update", Value: "/new-dest/"}, // value changed
-			{Key: "/new", Value: "/new/"},          // new key
+			{Key: "/new", Value: "/new/"},         // new key
 		},
 	}
 	existing := map[string]string{
