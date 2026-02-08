@@ -1,8 +1,14 @@
 baseURL = "https://example.com/"
 languageCode = "en-us"
 title = "Hedgerules"
-themesDir = "../"
-theme = "hugo-theme-hedgerules"
+[module]
+  replacements = "github.com/hedgerules/hugo-theme-hedgerules -> ../../hugo-theme-hedgerules"
+  [module.hugoVersion]
+    min = "0.128.0"
+  [[module.imports]]
+    path = "github.com/alex-shpak/hugo-book"
+  [[module.imports]]
+    path = "github.com/hedgerules/hugo-theme-hedgerules"
 
 # Enable Hedgerules output formats on the home page.
 # The theme defines the formats; this tells Hugo to generate them.
@@ -11,6 +17,8 @@ theme = "hugo-theme-hedgerules"
 
 [params]
   description = "Hugo Edge Rules for CloudFront"
+  BookSection = "docs"
+  BookToC = true
 
   # Global headers applied to all paths via the root "/" pattern.
   # These are merged into _hedge_headers.json at build time.
