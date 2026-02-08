@@ -1,6 +1,6 @@
 # Hedgerules: Design Decisions
 
-Resolving conflicts between UX advocate and minimalist, accounting for the fact that this is an open-source, non-monetizable project.
+Resolving conflicts between [UX advocate]({{< relref "ux-recommendations" >}}) and [minimalist]({{< relref "minimalist-recommendations" >}}), accounting for the fact that this is an open-source, non-monetizable project.
 
 **Decision framework**: Enough UX to get someone started, minimal code to maintain. Every feature must justify its maintenance cost with zero revenue to offset it.
 
