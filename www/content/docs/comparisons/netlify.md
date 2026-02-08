@@ -1,3 +1,0 @@
----
-title: "Hedgerules vs Netlify"
----
