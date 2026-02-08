@@ -4,8 +4,13 @@
 
 import cf from 'cloudfront';
 
+// Max response headers is 8KB total.
+// Reserve 2-3KB for CloudFront/S3 headers, ~1KB for debug headers.
+var headerSizeLimitBytes = 4096;
+
 async function handler(event) {
   var response = event.response;
+  response.headers = response.headers || {};
   var request = event.request;
   var kvs = cf.kvs(kvsId);
   var path = request.uri;
@@ -42,6 +47,8 @@ async function handler(event) {
     // Collect headers from all matching patterns
     var headers = {};
     var matched = [];
+    var totalAddedBytes = 0;
+    var truncated = false;
 
     for (var i = 0; i < patterns.length; i++) {
       try {
@@ -57,9 +64,18 @@ async function handler(event) {
               var val = line.substring(idx + 1).trim();
               val = val.replace('{/path}', path);
               if (name) {
+                var headerSize = name.length + val.length + 4;
+                if (totalAddedBytes + headerSize > headerSizeLimitBytes) {
+                  truncated = true;
+                  break;
+                }
                 headers[name] = val;
+                totalAddedBytes += headerSize;
               }
             }
+          }
+          if (truncated) {
+            break;
           }
         }
       } catch (err) {
@@ -77,6 +93,10 @@ async function handler(event) {
     if (typeof debugHeaders !== 'undefined' && debugHeaders) {
       response.headers['x-hedgerules-patterns'] = { value: patterns.join(',').substring(0, 200) };
       response.headers['x-hedgerules-matched'] = { value: matched.join(',').substring(0, 200) };
+      response.headers['x-hedgerules-size'] = { value: String(totalAddedBytes) };
+      if (truncated) {
+        response.headers['x-hedgerules-truncated'] = { value: 'true' };
+      }
     }
 
   } catch (err) {
