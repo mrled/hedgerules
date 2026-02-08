@@ -1,6 +1,6 @@
 ---
 title: "Custom Headers"
-weight: 2
+weight: 30
 HedgerulesHeaders:
   X-Docs-Section: "headers"
   Cache-Control: "public, max-age=3600"

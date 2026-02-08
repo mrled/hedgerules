@@ -1,6 +1,6 @@
 ---
 title: "Guides"
-weight: 0
+weight: 10
 ---
 
 Step-by-step guides for Hedgerules.

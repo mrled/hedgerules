@@ -1,6 +1,6 @@
 ---
 title: "Redirects"
-weight: 1
+weight: 20
 aliases:
   - /docs/redirect-guide/
 ---

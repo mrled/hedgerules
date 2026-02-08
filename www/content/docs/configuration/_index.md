@@ -1,6 +1,6 @@
 ---
 title: "Configuration Reference"
-weight: 4
+weight: 60
 ---
 
 Complete reference for all Hedgerules configuration options in `hugo.toml`.

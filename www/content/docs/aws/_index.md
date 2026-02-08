@@ -1,6 +1,6 @@
 ---
 title: "AWS Setup"
-weight: 3
+weight: 40
 ---
 
 Hedgerules requires several AWS resources. This guide explains what you need and how to set them up.
