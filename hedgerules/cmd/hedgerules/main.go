@@ -130,14 +130,8 @@ func runDeploy(args []string) {
 	}
 	fmt.Fprintf(os.Stderr, "Found %d file redirects\n", len(fileEntries))
 
-	mergedEntries := hugo.MergeRedirects(dirEntries, fileEntries)
-	fmt.Fprintf(os.Stderr, "Total redirects after merge: %d\n", len(mergedEntries))
-
-	fmt.Fprintf(os.Stderr, "Resolving redirect chains...\n")
-	redirectEntries, err := hugo.ResolveChains(mergedEntries)
-	if err != nil {
-		fatal("resolving redirect chains: %v", err)
-	}
+	redirectEntries := hugo.MergeRedirects(dirEntries, fileEntries)
+	fmt.Fprintf(os.Stderr, "Total redirects after merge: %d\n", len(redirectEntries))
 
 	fmt.Fprintf(os.Stderr, "Parsing _hedge_headers.json...\n")
 	headerEntries, err := hugo.ParseHeaders(cfg.OutputDir)

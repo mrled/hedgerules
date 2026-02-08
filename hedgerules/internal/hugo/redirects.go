@@ -10,37 +10,6 @@ import (
 	"github.com/micahrl/hedgerules/internal/kvs"
 )
 
-// ResolveChains follows redirect chains to their final destination.
-// For example, if /a -> /b and /b -> /c, then /a is resolved to /a -> /c.
-// Returns an error if a cycle is detected.
-func ResolveChains(entries []kvs.Entry) ([]kvs.Entry, error) {
-	// Build a map from source to destination
-	redirectMap := make(map[string]string, len(entries))
-	for _, e := range entries {
-		redirectMap[e.Key] = e.Value
-	}
-
-	resolved := make([]kvs.Entry, 0, len(entries))
-	for _, e := range entries {
-		dest := e.Value
-		visited := map[string]bool{e.Key: true}
-		for {
-			next, ok := redirectMap[dest]
-			if !ok {
-				break
-			}
-			if visited[dest] {
-				return nil, fmt.Errorf("redirect cycle detected: %s -> %s -> ... -> %s", e.Key, e.Value, dest)
-			}
-			visited[dest] = true
-			dest = next
-		}
-		resolved = append(resolved, kvs.Entry{Key: e.Key, Value: dest})
-	}
-
-	return resolved, nil
-}
-
 // ParseRedirects reads the _hedge_redirects.txt file and returns redirect entries.
 // Lines are whitespace-separated: source destination [status].
 // Empty lines and lines starting with # are ignored.

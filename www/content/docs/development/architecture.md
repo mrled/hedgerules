@@ -18,7 +18,7 @@ hedgerules/
   internal/
     hugo/
       directories.go       # Scan Hugo output dirs for index redirects
-      redirects.go         # Parse _hedge_redirects.txt, merge, resolve chains
+      redirects.go         # Parse _hedge_redirects.txt, merge redirects
       headers.go           # Parse _hedge_headers.json
     kvs/
       types.go             # Entry, Data, SyncPlan types
@@ -39,7 +39,7 @@ hedgerules/
 | Package | Responsibility |
 |---|---|
 | `cmd/hedgerules` | CLI entry point, flag parsing, TOML config loading, command dispatch |
-| `internal/hugo` | Parse Hugo build output: directories, `_hedge_redirects.txt`, `_hedge_headers.json`; merge redirects; resolve redirect chains |
+| `internal/hugo` | Parse Hugo build output: directories, `_hedge_redirects.txt`, `_hedge_headers.json`; merge redirects |
 | `internal/kvs` | KVS data types, validation against constraints, diff-and-sync to AWS |
 | `internal/functions` | Embed JS source files, inject variables (`kvsId`, `debugHeaders`), deploy to CloudFront Functions API |
 
@@ -172,10 +172,6 @@ func ParseRedirects(outputDir string) ([]kvs.Entry, error)
 // File redirects take precedence.
 func MergeRedirects(dirEntries, fileEntries []kvs.Entry) []kvs.Entry
 
-// ResolveChains follows redirect chains to their final destination.
-// Returns error if a cycle is detected.
-func ResolveChains(entries []kvs.Entry) ([]kvs.Entry, error)
-
 // internal/hugo/headers.go
 
 // ParseHeaders reads _hedge_headers.json and returns header entries.
@@ -248,11 +244,6 @@ v             v        v
        v                |
   Merge redirects       |
   (file overrides dirs) |
-       |                |
-       v                |
-  Resolve chains        |
-  (follow /a->/b->/c    |
-   to /a->/c)           |
        |                |
        v                v
     Data             Data
@@ -547,7 +538,7 @@ The following changes were decided in the [Design Decisions]({{< relref "decisio
 
 ### Features re-added (previously cut)
 
-1. **Redirect chain following** — At deploy time, resolve redirect chains to their final destination before writing to KVS. The viewer-request function still does a single lookup; chain resolution happens in the Go CLI during parsing.
+1. **~~Redirect chain following~~** — Remains cut. The browser follows multiple 301s natively; chain resolution is unnecessary complexity.
 2. **`{/path}` token substitution** — Support `{/path}` tokens in header values. The viewer-response function substitutes the request path into header values at the edge.
 3. **Extension wildcard matching (`*.xml`)** — Match headers by file extension in addition to exact path and directory. The viewer-response function needs an extension-based KVS lookup.
 4. **Full hierarchical header cascade** — Replace the simplified exact-path + root fallback with a full cascade: root `/` → directory → extension → exact path. More specific matches override less specific ones. This affects both the Go CLI (how header entries are organized into KVS) and viewer-response.js (lookup order).
