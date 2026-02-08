@@ -14,26 +14,22 @@ The tool reads a built Hugo site, extracts redirect rules and custom header defi
 hedgerules/
   cmd/
     hedgerules/
-      main.go              # Entry point, wires up CLI
+      main.go              # Entry point, CLI flags, command dispatch, orchestration
   internal/
-    config/
-      config.go            # Config file loading + defaults
     hugo/
       directories.go       # Scan Hugo output dirs for index redirects
-      redirects.go         # Parse Hugo _redirects file
-      headers.go           # Parse _cfheaders.json
+      redirects.go         # Parse _hedge_redirects.txt, merge, resolve chains
+      headers.go           # Parse _hedge_headers.json
     kvs/
-      types.go             # KVSData, KVSEntry types
+      types.go             # Entry, Data, SyncPlan types
       validate.go          # KVS constraint validation
       sync.go              # Diff + sync logic (put/delete)
     functions/
-      embed.go             # go:embed for JS function code
+      embed.go             # go:embed for JS function code, BuildFunctionCode
       deploy.go            # Create/update CloudFront Functions via API
-    aws/
-      clients.go           # AWS SDK client factory
-  functions/
-    viewer-request.js      # CloudFront Function: redirects + index rewrite
-    viewer-response.js     # CloudFront Function: custom response headers
+      viewer-request.js    # CloudFront Function: redirects + index rewrite
+      viewer-response.js   # CloudFront Function: custom response headers (cascade)
+  hedgerules.toml          # Example config file
   go.mod
   go.sum
 ```
@@ -42,13 +38,10 @@ hedgerules/
 
 | Package | Responsibility |
 |---|---|
-| `cmd/hedgerules` | CLI entry point, flag parsing, command dispatch |
-| `internal/config` | Load TOML/YAML config, merge with CLI flags |
-| `internal/hugo` | Parse Hugo build output: directories, `_redirects`, `_cfheaders.json` |
+| `cmd/hedgerules` | CLI entry point, flag parsing, TOML config loading, command dispatch |
+| `internal/hugo` | Parse Hugo build output: directories, `_hedge_redirects.txt`, `_hedge_headers.json`; merge redirects; resolve redirect chains |
 | `internal/kvs` | KVS data types, validation against constraints, diff-and-sync to AWS |
-| `internal/functions` | Embed JS source, prepend `kvsId` constant, deploy to CloudFront Functions API |
-| `internal/aws` | AWS SDK v2 client construction with shared config |
-| `functions/` | Raw JS source files (embedded at compile time) |
+| `internal/functions` | Embed JS source files, inject variables (`kvsId`, `debugHeaders`), deploy to CloudFront Functions API |
 
 ---
 
@@ -58,7 +51,6 @@ Use **stdlib `flag`** package only. No third-party CLI framework. The tool has a
 
 ```
 hedgerules deploy [flags]
-hedgerules validate [flags]
 hedgerules version
 ```
 
@@ -88,14 +80,6 @@ Flags:
 | `--config` | No | Path to config file (default: `hedgerules.toml` in current directory) |
 | `--region` | No | AWS region override |
 
-### `hedgerules validate`
-
-Parse and validate only. Same flags as `deploy` minus the function/KVS names (only needs `--output-dir`). Exits 0 on success, 1 on validation failure.
-
-```
-hedgerules validate --output-dir public/
-```
-
 ### `hedgerules version`
 
 Print version and exit.
@@ -113,8 +97,6 @@ func main() {
     switch os.Args[1] {
     case "deploy":
         runDeploy(os.Args[2:])
-    case "validate":
-        runValidate(os.Args[2:])
     case "version":
         fmt.Println(version)
     default:
@@ -133,21 +115,21 @@ func main() {
 ```go
 // internal/kvs/types.go
 
-// KVSEntry is a single key-value pair destined for CloudFront KVS.
-type KVSEntry struct {
+// Entry is a single key-value pair destined for CloudFront KVS.
+type Entry struct {
     Key   string
     Value string
 }
 
-// KVSData holds all entries for a single KVS, with validation methods.
-type KVSData struct {
-    Entries []KVSEntry
+// Data holds all entries for a single KVS, with validation methods.
+type Data struct {
+    Entries []Entry
 }
 
 // SyncPlan describes what operations are needed to bring KVS to desired state.
 type SyncPlan struct {
-    Puts    []KVSEntry // Keys to add or update
-    Deletes []string   // Keys to remove
+    Puts    []Entry  // Keys to add or update
+    Deletes []string // Keys to remove
 }
 ```
 
@@ -179,18 +161,26 @@ func (d *KVSData) Validate() []ValidationError
 
 // ScanDirectories walks outputDir and returns index redirect entries
 // (e.g., /blog -> /blog/).
-func ScanDirectories(outputDir string) ([]kvs.KVSEntry, error)
+func ScanDirectories(outputDir string) ([]kvs.Entry, error)
 
 // internal/hugo/redirects.go
 
-// ParseRedirects reads the _redirects file and returns redirect entries.
-func ParseRedirects(outputDir string) ([]kvs.KVSEntry, error)
+// ParseRedirects reads _hedge_redirects.txt and returns redirect entries.
+func ParseRedirects(outputDir string) ([]kvs.Entry, error)
+
+// MergeRedirects merges directory redirects with file redirects.
+// File redirects take precedence.
+func MergeRedirects(dirEntries, fileEntries []kvs.Entry) []kvs.Entry
+
+// ResolveChains follows redirect chains to their final destination.
+// Returns error if a cycle is detected.
+func ResolveChains(entries []kvs.Entry) ([]kvs.Entry, error)
 
 // internal/hugo/headers.go
 
-// ParseHeaders reads _cfheaders.json and returns header entries.
+// ParseHeaders reads _hedge_headers.json and returns header entries.
 // Each entry's value is newline-delimited "Header-Name: value" strings.
-func ParseHeaders(outputDir string) ([]kvs.KVSEntry, error)
+func ParseHeaders(outputDir string) ([]kvs.Entry, error)
 ```
 
 ### AWS operations
@@ -199,11 +189,11 @@ func ParseHeaders(outputDir string) ([]kvs.KVSEntry, error)
 // internal/kvs/sync.go
 
 // ComputeSyncPlan compares desired state against existing KVS keys.
-func ComputeSyncPlan(desired *KVSData, existingKeys map[string]string) *SyncPlan
+func ComputeSyncPlan(desired *Data, existingKeys map[string]string) *SyncPlan
 
 // Sync applies a SyncPlan to a CloudFront KVS. Returns error on failure.
 // Uses UpdateKeys batch API for efficiency.
-func Sync(ctx context.Context, client KVSClient, kvsARN string, plan *SyncPlan) error
+func Sync(ctx context.Context, client KVSClient, kvsARN, etag string, plan *SyncPlan) error
 
 // internal/functions/deploy.go
 
@@ -247,21 +237,25 @@ Hugo build output (public/)
 |             |        |
 v             v        v
 Scan dirs   Parse    Parse
-for index   _redirects  _cfheaders.json
-redirects
+for index   _hedge_     _hedge_headers.json
+redirects   redirects.txt
 |             |        |
 v             v        v
-[]KVSEntry  []KVSEntry  []KVSEntry
+[]Entry     []Entry    []Entry
 |             |        |
 +------+------+        |
        |                |
-       v                v
-  Merge redirects    Header entries
-  (file redirects    (separate KVS)
-   override dirs)
+       v                |
+  Merge redirects       |
+  (file overrides dirs) |
+       |                |
+       v                |
+  Resolve chains        |
+  (follow /a->/b->/c    |
+   to /a->/c)           |
        |                |
        v                v
-    KVSData          KVSData
+    Data             Data
     (redirects)      (headers)
        |                |
        v                v
@@ -289,23 +283,17 @@ v             v        v
                v
    Deploy viewer-request    Deploy viewer-response
    CloudFront Function      CloudFront Function
-   (with redirect KVS ID)   (with header KVS ID)
+   (with redirect KVS ID)   (with header KVS ID +
+                              debugHeaders flag)
 ```
 
 ### Merge precedence for redirects
 
 Directory-derived index redirects (`/blog` -> `/blog/`) are generated first. Then `_redirects` file entries are applied on top, overriding any conflicts. This matches the existing Python behavior.
 
-### Concurrency
+### Sequential execution
 
-The redirect KVS sync and header KVS sync are independent and can run concurrently. Similarly, the two function deployments are independent. Use `errgroup` for parallel execution with shared error handling:
-
-```go
-g, ctx := errgroup.WithContext(ctx)
-g.Go(func() error { return syncRedirects(ctx, ...) })
-g.Go(func() error { return syncHeaders(ctx, ...) })
-if err := g.Wait(); err != nil { ... }
-```
+The redirect KVS sync and header KVS sync run sequentially (sync redirects, then sync headers, then deploy functions). This keeps the code simple and avoids error-handling complexity from concurrency.
 
 ---
 
@@ -371,25 +359,22 @@ var ViewerRequestJS []byte
 var ViewerResponseJS []byte
 ```
 
-The `functions/` directory at the project root holds the JS files. The `embed.go` file in `internal/functions/` references them via a relative path configured in `go:embed` directives.
+The JS files live in `internal/functions/` alongside `embed.go`. Since `go:embed` paths are relative to the source file, this is the simplest arrangement — no build steps, no symlinks.
 
-**Note on the embed path**: Since `go:embed` paths are relative to the source file, the `internal/functions/` package will need access to the JS files. Two options:
+### Injecting variables
 
-- **Option A (preferred)**: Place the JS files in `internal/functions/` directly.
-- **Option B**: Place JS in a top-level `functions/` dir and use a symlink or copy at build time.
-
-**Recommendation**: Option A. Place JS files at `internal/functions/viewer-request.js` and `internal/functions/viewer-response.js`. This is simplest - no build steps, no symlinks.
-
-### Prepending the KVS ID
-
-The existing JS files expect `const kvsId = '...';` to be defined before the function code. At deploy time, the Go code prepends this constant:
+At deploy time, the Go code prepends runtime variables to the JS source:
 
 ```go
-func BuildFunctionCode(jsSource []byte, kvsID string) []byte {
-    header := fmt.Sprintf("const kvsId = '%s';\n", kvsID)
+func BuildFunctionCode(jsSource []byte, kvsID string, debugHeaders bool) []byte {
+    header := fmt.Sprintf("var kvsId = '%s';\nvar debugHeaders = %v;\n", kvsID, debugHeaders)
     return append([]byte(header), jsSource...)
 }
 ```
+
+This injects:
+- `kvsId` — the CloudFront KVS ARN for KVS lookups
+- `debugHeaders` — whether to emit `x-hedgerules-*` debug response headers (off by default)
 
 ---
 
@@ -415,6 +400,7 @@ kvs-name = "mysite-headers"
 [functions]
 request-name = "mysite-viewer-request"
 response-name = "mysite-viewer-response"
+# debug-headers = false
 ```
 
 ### Config resolution order (lowest to highest priority)
@@ -430,25 +416,25 @@ Use `github.com/BurntSushi/toml`. It's the standard Go TOML library, lightweight
 ### Config struct
 
 ```go
-// internal/config/config.go
+// cmd/hedgerules/main.go
 
-type Config struct {
+type config struct {
     OutputDir string `toml:"output-dir"`
     Region    string `toml:"region"`
-    DryRun    bool   // CLI-only, not in config file
 
-    Redirects KVSConfig      `toml:"redirects"`
-    Headers   KVSConfig      `toml:"headers"`
-    Functions FunctionsConfig `toml:"functions"`
+    Redirects kvsConfig       `toml:"redirects"`
+    Headers   kvsConfig       `toml:"headers"`
+    Functions functionsConfig `toml:"functions"`
 }
 
-type KVSConfig struct {
+type kvsConfig struct {
     KVSName string `toml:"kvs-name"`
 }
 
-type FunctionsConfig struct {
+type functionsConfig struct {
     RequestName  string `toml:"request-name"`
     ResponseName string `toml:"response-name"`
+    DebugHeaders bool   `toml:"debug-headers"`
 }
 ```
 
@@ -501,17 +487,16 @@ Use `fmt.Fprintf(os.Stderr, ...)` for status/progress messages and `fmt.Println(
 | `github.com/aws/aws-sdk-go-v2/service/cloudfront` | CloudFront Functions + KVS listing API |
 | `github.com/aws/aws-sdk-go-v2/service/cloudfrontkeyvaluestore` | CloudFront KVS data API |
 | `github.com/BurntSushi/toml` | TOML config file parsing |
-| `golang.org/x/sync` | `errgroup` for concurrent sync |
 
 ### Standard library only (no external dep needed)
 
 | Need | stdlib solution |
 |---|---|
 | CLI flag parsing | `flag` |
-| JSON parsing (`_cfheaders.json`) | `encoding/json` |
+| JSON parsing (`_hedge_headers.json`) | `encoding/json` |
 | File walking (directory scan) | `io/fs`, `filepath.WalkDir` |
 | Embedding JS | `embed` |
-| Concurrency | `context`, `sync` |
+| Context | `context` |
 | Testing | `testing` |
 
 ### Go version
@@ -529,7 +514,7 @@ Require Go 1.21+ (for `slices`, `maps`, `slog` availability if needed later).
 | KVS sync | Batch `UpdateKeys` | Atomic, one API call vs N individual calls |
 | Config format | TOML | Hugo users know it, lightweight parser |
 | JS embedding | `go:embed` | No build step, compiled into binary |
-| Concurrency | `errgroup` | Redirects + headers sync in parallel |
+| Concurrency | Sequential | Simple, no parallel complexity |
 | Error strategy | Validate all first, fail fast | No partial deploys |
 | Logging | stderr/stdout, no framework | Minimal dependencies |
 
@@ -558,7 +543,7 @@ The following changes were decided in the [Design Decisions]({{< relref "decisio
 
 ### Terminology rename
 
-- `_cfheaders.json` is now `_hedge_headers.json`. All references in code, config, docs, templates, and tests must be updated.
+- `_hedge_headers.json` is now `_hedge_headers.json`. All references in code, config, docs, templates, and tests must be updated.
 
 ### Features re-added (previously cut)
 

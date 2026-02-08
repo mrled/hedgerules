@@ -63,7 +63,7 @@ region = "us-east-1"
 **Recommendation:** `hedgerules deploy` should:
 1. Scan the Hugo output directory for directories (to generate index redirects).
 2. Read `_redirects` for Hugo alias redirects.
-3. Read `_cfheaders.json` for custom headers.
+3. Read `_hedge_headers.json` for custom headers.
 4. Validate all KVS constraints.
 5. Sync redirects to the request KVS.
 6. Sync headers to the response KVS.
@@ -100,7 +100,7 @@ This gives users confidence before their first real deploy.
 1. Check if we're in a Hugo project directory (look for `hugo.toml`).
 2. Ask the user for their CloudFormation stack name (or KVS names if not using CFN).
 3. Generate a `hedgerules.toml` with comments explaining each field.
-4. Optionally create a starter `_cfheaders.json` template (Hugo template file) if the user wants custom headers.
+4. Optionally create a starter `_hedge_headers.json` template (Hugo template file) if the user wants custom headers.
 5. Print next steps: "Run `hugo build` then `hedgerules deploy --dry-run` to preview."
 
 Keep `init` non-interactive if possible — accept arguments on the command line and only prompt when truly needed.
@@ -121,7 +121,7 @@ Keep `init` non-interactive if possible — accept arguments on the command line
 | Access denied | `Error: Permission denied when accessing KVS. Ensure your AWS credentials have cloudfront-keyvaluestore:* permissions. See: hedgerules.example.com/docs/aws-permissions` |
 | No Hugo output | `Error: Hugo output directory "public/" not found. Did you run "hugo" first?` |
 | No _redirects | `Warning: No _redirects file found in public/. No Hugo alias redirects will be synced. (This is fine if you don't use Hugo aliases.)` |
-| No _cfheaders.json | `Warning: No _cfheaders.json found in public/. No custom headers will be synced. (This is fine if you don't need custom response headers.)` |
+| No _hedge_headers.json | `Warning: No _hedge_headers.json found in public/. No custom headers will be synced. (This is fine if you don't need custom response headers.)` |
 | KVS key too large | `Error: Redirect "/very/long/path/that/exceeds/the/limit/..." exceeds the 512-byte key limit. CloudFront KVS has a 512-byte key limit. Consider shorter URL paths.` |
 | KVS total too large | `Error: Total data (6.2 MB) exceeds the 5 MB CloudFront KVS limit. You have 4,312 entries. Consider reducing the number of redirects or header entries.` |
 | Partial sync failure | `Warning: 3 of 47 keys failed to sync. Run "hedgerules deploy" again to retry. Failed keys: /path/a, /path/b, /path/c` |
@@ -195,7 +195,7 @@ The CLI output should reflect this: show simple summaries by default, and `--ver
 
 **Problem:** Not every Hugo site needs custom response headers. Users who just want redirects and index.html rewrites shouldn't need to deal with the header system at all.
 
-**Recommendation:** Make headers entirely optional. If `_cfheaders.json` doesn't exist:
+**Recommendation:** Make headers entirely optional. If `_hedge_headers.json` doesn't exist:
 - Skip the response KVS sync silently (or with a single info-level message).
 - Don't error out, don't warn loudly.
 - The viewer-response function still works fine with an empty KVS.

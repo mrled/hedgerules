@@ -12,3 +12,4 @@ kvs-name = "mysite-headers"
 [functions]
 request-name = "mysite-viewer-request"
 response-name = "mysite-viewer-response"
+# debug-headers = false

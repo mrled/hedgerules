@@ -11,8 +11,9 @@ var ViewerRequestJS []byte
 //go:embed viewer-response.js
 var ViewerResponseJS []byte
 
-// BuildFunctionCode prepends the KVS ID constant to the JS source.
-func BuildFunctionCode(jsSource []byte, kvsID string) []byte {
-	header := fmt.Sprintf("var kvsId = '%s';\n", kvsID)
+// BuildFunctionCode prepends injected variables to the JS source.
+// It injects the KVS ID and the debug headers toggle.
+func BuildFunctionCode(jsSource []byte, kvsID string, debugHeaders bool) []byte {
+	header := fmt.Sprintf("var kvsId = '%s';\nvar debugHeaders = %v;\n", kvsID, debugHeaders)
 	return append([]byte(header), jsSource...)
 }

@@ -33,6 +33,7 @@ type kvsConfig struct {
 type functionsConfig struct {
 	RequestName  string `toml:"request-name"`
 	ResponseName string `toml:"response-name"`
+	DebugHeaders bool   `toml:"debug-headers"`
 }
 
 func main() {
@@ -66,6 +67,7 @@ func runDeploy(args []string) {
 	responseFunc := fs.String("response-function-name", "", "CloudFront Function name for viewer-response")
 	dryRun := fs.Bool("dry-run", false, "parse and validate only, print plan")
 	region := fs.String("region", "", "AWS region override")
+	debugHeaders := fs.Bool("debug-headers", false, "inject debug headers into viewer-response function")
 	fs.Parse(args)
 
 	// Load config file
@@ -89,6 +91,9 @@ func runDeploy(args []string) {
 	}
 	if *region != "" {
 		cfg.Region = *region
+	}
+	if *debugHeaders {
+		cfg.Functions.DebugHeaders = true
 	}
 
 	// Validate required config
@@ -125,8 +130,14 @@ func runDeploy(args []string) {
 	}
 	fmt.Fprintf(os.Stderr, "Found %d file redirects\n", len(fileEntries))
 
-	redirectEntries := hugo.MergeRedirects(dirEntries, fileEntries)
-	fmt.Fprintf(os.Stderr, "Total redirects after merge: %d\n", len(redirectEntries))
+	mergedEntries := hugo.MergeRedirects(dirEntries, fileEntries)
+	fmt.Fprintf(os.Stderr, "Total redirects after merge: %d\n", len(mergedEntries))
+
+	fmt.Fprintf(os.Stderr, "Resolving redirect chains...\n")
+	redirectEntries, err := hugo.ResolveChains(mergedEntries)
+	if err != nil {
+		fatal("resolving redirect chains: %v", err)
+	}
 
 	fmt.Fprintf(os.Stderr, "Parsing _hedge_headers.json...\n")
 	headerEntries, err := hugo.ParseHeaders(cfg.OutputDir)
@@ -231,13 +242,13 @@ func runDeploy(args []string) {
 
 	// Step 8: Deploy CloudFront Functions
 	fmt.Fprintf(os.Stderr, "Deploying viewer-request function...\n")
-	requestCode := functions.BuildFunctionCode(functions.ViewerRequestJS, redirectsARN)
+	requestCode := functions.BuildFunctionCode(functions.ViewerRequestJS, redirectsARN, false)
 	if err := functions.DeployFunction(ctx, cfClient, cfg.Functions.RequestName, requestCode, redirectsARN); err != nil {
 		fatal("deploying viewer-request function: %v", err)
 	}
 
 	fmt.Fprintf(os.Stderr, "Deploying viewer-response function...\n")
-	responseCode := functions.BuildFunctionCode(functions.ViewerResponseJS, headersARN)
+	responseCode := functions.BuildFunctionCode(functions.ViewerResponseJS, headersARN, cfg.Functions.DebugHeaders)
 	if err := functions.DeployFunction(ctx, cfClient, cfg.Functions.ResponseName, responseCode, headersARN); err != nil {
 		fatal("deploying viewer-response function: %v", err)
 	}

@@ -94,7 +94,7 @@ This is the core value: `/path` -> `/path/` for every directory. One function, o
 
 Hugo generates `_redirects` from aliases. Reading this file and merging is straightforward and essential.
 
-### 3. Parse `_cfheaders.json` -> generate header KVS entries (KEEP, but simplify)
+### 3. Parse `_hedge_headers.json` -> generate header KVS entries (KEEP, but simplify)
 
 Headers are useful. But simplify the format: exact paths only, no pattern matching (see cut #4 above). The JSON maps paths to header strings. Simple.
 
@@ -143,7 +143,7 @@ If there's pressure for a config file, use Hugo's own config (`hugo.toml` under 
 ```
 main.go          # CLI parsing, orchestration
 kvs.go           # KVS sync logic (shared between request/response)
-scan.go          # Hugo output scanning (directories, _redirects, _cfheaders.json)
+scan.go          # Hugo output scanning (directories, _redirects, _hedge_headers.json)
 validate.go      # KVS size constraint validation
 ```
 
@@ -160,7 +160,7 @@ Four files. No `internal/` directory. No `pkg/`. No interfaces unless there are 
 
 - Test directory scanning produces correct redirect maps.
 - Test `_redirects` parsing produces correct redirect maps.
-- Test `_cfheaders.json` parsing produces correct header maps.
+- Test `_hedge_headers.json` parsing produces correct header maps.
 - Test KVS validation catches size violations.
 - Test merge logic (file redirects override directory redirects).
 - Do NOT write integration tests against real AWS. Do NOT mock the AWS SDK. Test the pure data transformation functions only.
@@ -183,7 +183,7 @@ Four API calls total. The Python examples use individual put/delete which is N c
 | Component | Estimated LoC | Notes |
 |---|---|---|
 | `main.go` | ~50 | Flag parsing, call scan, validate, sync |
-| `scan.go` | ~80 | Directory walk, `_redirects` parse, `_cfheaders.json` parse |
+| `scan.go` | ~80 | Directory walk, `_redirects` parse, `_hedge_headers.json` parse |
 | `kvs.go` | ~60 | List current keys, diff, batch UpdateKeys |
 | `validate.go` | ~30 | Size constraint checks |
 | `viewer-request.js` | ~15 | Single lookup + index.html rewrite |
