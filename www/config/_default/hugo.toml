@@ -15,8 +15,8 @@ theme = "hugo-theme-hedgerules"
   # Global headers applied to all paths via the root "/" pattern.
   # These are merged into _hedge_headers.json at build time.
   # Per-page headers (from frontmatter) override these for specific pages.
-  [params.CloudFrontNonPagePathHeaders]
-    [params.CloudFrontNonPagePathHeaders."/"]
+  [params.HedgerulesPathHeaders]
+    [params.HedgerulesPathHeaders."/"]
       X-Content-Type-Options = "nosniff"
       X-Frame-Options = "DENY"
       Referrer-Policy = "strict-origin-when-cross-origin"

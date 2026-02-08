@@ -26,7 +26,7 @@ Headers may include the special token {/path}, which means the response path wit
 {{- end -}}
 
 {{- /* Merge all non-page-path headers, which are defined in a single place in the global site config */ -}}
-{{- range $path, $headerDict := .Site.Params.CloudFrontNonPagePathHeaders -}}
+{{- range $path, $headerDict := .Site.Params.HedgerulesPathHeaders -}}
   {{- /* Headers are already in dict format, just merge with existing */ -}}
   {{- $existingHeaders := dict -}}
   {{- if isset $headers $path -}}
@@ -40,9 +40,9 @@ Headers may include the special token {/path}, which means the response path wit
 {{- range .Site.Pages -}}
   {{- $path := .RelPermalink -}}
   {{- $headerDict := dict -}}
-  {{- if .Params.CloudFrontHeaders -}}
+  {{- if .Params.HedgerulesHeaders -}}
     {{- /* Headers are already in dict format, just merge */ -}}
-    {{- $headerDict = merge $headerDict .Params.CloudFrontHeaders -}}
+    {{- $headerDict = merge $headerDict .Params.HedgerulesHeaders -}}
   {{- end -}}
   {{- if gt (len $headerDict) 0 -}}
     {{- /* Merge with existing headers for this path */ -}}

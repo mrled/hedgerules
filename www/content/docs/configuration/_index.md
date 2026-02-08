@@ -33,8 +33,8 @@ If you're using the `hugo-theme-hedgerules` theme, the format definitions are pr
 ## Root headers
 
 ```toml
-[params.CloudFrontNonPagePathHeaders]
-  [params.CloudFrontNonPagePathHeaders."/"]
+[params.HedgerulesPathHeaders]
+  [params.HedgerulesPathHeaders."/"]
     X-Content-Type-Options = "nosniff"
     X-Frame-Options = "DENY"
 ```
@@ -47,7 +47,7 @@ In page frontmatter (YAML or TOML):
 
 ```yaml
 ---
-CloudFrontHeaders:
+HedgerulesHeaders:
   Cache-Control: "public, max-age=86400"
   X-Custom: "value"
 ---

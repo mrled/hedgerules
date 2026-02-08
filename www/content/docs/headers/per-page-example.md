@@ -1,6 +1,6 @@
 ---
 title: "Per-Page Header Example"
-CloudFrontHeaders:
+HedgerulesHeaders:
   X-Custom-Page: "per-page-example"
   Cache-Control: "public, max-age=86400"
 ---

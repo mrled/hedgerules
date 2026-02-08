@@ -4,8 +4,8 @@ Outputs a JSON file mapping paths to objects of HTTP headers.
 Format: {"/path/": {"Header-Name": "value"}, "/": {"Default-Header": "value"}}
 
 Header sources (merged in this order, later wins):
-1. params.CloudFrontNonPagePathHeaders from hugo.toml (root "/" for global defaults)
-2. CloudFrontHeaders from page frontmatter (exact page paths)
+1. params.HedgerulesPathHeaders from hugo.toml (root "/" for global defaults)
+2. HedgerulesHeaders from page frontmatter (exact page paths)
 
 The viewer-response function does two KVS lookups: exact path, then root "/".
 Exact-path headers take priority over root defaults.
@@ -16,7 +16,7 @@ Exact-path headers take priority over root defaults.
 {{- $headers := dict -}}
 
 {{- /* Merge all non-page-path headers from site config */ -}}
-{{- range $path, $headerDict := .Site.Params.CloudFrontNonPagePathHeaders -}}
+{{- range $path, $headerDict := .Site.Params.HedgerulesPathHeaders -}}
   {{- $existingHeaders := dict -}}
   {{- if isset $headers $path -}}
     {{- $existingHeaders = index $headers $path -}}
@@ -29,8 +29,8 @@ Exact-path headers take priority over root defaults.
 {{- range .Site.Pages -}}
   {{- $path := .RelPermalink -}}
   {{- $headerDict := dict -}}
-  {{- if .Params.CloudFrontHeaders -}}
-    {{- $headerDict = merge $headerDict .Params.CloudFrontHeaders -}}
+  {{- if .Params.HedgerulesHeaders -}}
+    {{- $headerDict = merge $headerDict .Params.HedgerulesHeaders -}}
   {{- end -}}
   {{- if gt (len $headerDict) 0 -}}
     {{- $existingHeaders := dict -}}

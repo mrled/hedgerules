@@ -35,8 +35,8 @@ The output format definitions are provided by the theme. If you're not using the
 Add global default headers under the root `/` key:
 
 ```toml
-[params.CloudFrontNonPagePathHeaders]
-  [params.CloudFrontNonPagePathHeaders."/"]
+[params.HedgerulesPathHeaders]
+  [params.HedgerulesPathHeaders."/"]
     X-Content-Type-Options = "nosniff"
     X-Frame-Options = "DENY"
 ```
@@ -46,7 +46,7 @@ These apply to every response. Override them for specific pages using frontmatte
 ```yaml
 ---
 title: "My Page"
-CloudFrontHeaders:
+HedgerulesHeaders:
   Cache-Control: "max-age=3600"
 ---
 ```
