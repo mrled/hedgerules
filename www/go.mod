@@ -1,4 +1,4 @@
-module github.com/hedgerules/hedgerules-www
+module github.com/mrled/hedgerules/hedgerules-www
 
 go 1.24.10
 
