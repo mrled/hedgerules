@@ -1,6 +1,7 @@
 baseURL = "https://example.com/"
 languageCode = "en-us"
 title = "Hedgerules"
+
 [module]
   replacements = "github.com/mrled/hedgerules/hugo-theme-hedgerules -> ../../hugo-theme-hedgerules"
   [module.hugoVersion]
@@ -14,6 +15,11 @@ title = "Hedgerules"
 # The theme defines the formats; this tells Hugo to generate them.
 [outputs]
   home = ["HTML", "hedgeheaders", "hedgeredirects"]
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
 
 [params]
   description = "Hugo Edge Rules for CloudFront"
