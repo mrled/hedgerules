@@ -14,44 +14,43 @@ Resolving conflicts between [UX advocate]({{< relref "ux-recommendations" >}}) a
 |---|---|---|
 | Scan dirs for index redirects | KEEP | Core value proposition |
 | Parse `_redirects` | KEEP | Essential for Hugo aliases |
-| Parse `_cfheaders.json` | KEEP | Essential for custom headers |
+| Parse `_hedge_headers.json` | KEEP | Essential for custom headers |
 | KVS constraint validation | KEEP | Prevents confusing API errors, ~30 lines |
 | KVS batch sync (`UpdateKeys`) | KEEP | The whole point of the tool |
 | Dry-run mode | KEEP | ~10 lines, huge confidence boost for new users |
 | CloudFront Function deployment | KEEP | Part of the core value prop; users need KVS ID injected into JS |
 | Config file (`hedgerules.toml`) | KEEP | Goes in version control, teammates don't memorize flags |
+| Redirect chain following | KEEP | Follows redirect chains to final destination at deploy time |
+| `{/path}` token substitution | KEEP | Allows path-based token replacement in header values |
+| Extension wildcard matching (`*.xml`) | KEEP | Match headers by file extension |
+| Full hierarchical header cascade | KEEP | Root → directory → extension → exact path, with specificity rules |
+| Debug headers (`x-hedgerules-*`) | KEEP | Off by default; enabled via variable injection (same mechanism as KVS name) |
 
 ### CUT: Not building
 
 | Feature | Decision | Rationale |
 |---|---|---|
-| Redirect chain following | CUT | Browser follows two 301s. Works fine. |
-| `{/path}` token substitution | CUT | One header on one site. Users write custom JS if needed. |
-| Extension wildcard matching (`*.xml`) | CUT | Niche. Users enumerate paths in Hugo templates. |
-| Full hierarchical header cascade | CUT | Mini-CSS-specificity engine in 1ms budget. Way too much. |
 | `hedgerules init` command | CUT | Generates a 5-line config. Users copy from docs. |
 | `hedgerules check` command | CUT | Deploy fails with clear errors. Separate check is redundant. |
 | `hedgerules validate` command | CUT | `deploy --dry-run` covers this. |
 | STS credential pre-check | CUT | Just let it fail. AWS SDK errors are clear enough. |
-| Debug headers (`x-mrldbg-*`) | CUT | Author's debugging needs, not shipped feature. |
 | Multi-cloud (Azure, GCP) | CUT | Different project. This is a CloudFront tool. |
 | CloudFormation management | CUT | Too variable per user. Ship example as docs only. |
 | Auto-discovery of KVS by convention | CUT | Magic that breaks. Users specify names explicitly. |
 | Retry logic / partial sync recovery | CUT | Re-run is safe. KVS is convergent. |
 
-### SIMPLIFIED: Header matching
+### Header matching
 
-**Instead of**: Full hierarchical cascade (root → directory → extension → exact path, with specificity rules, size tracking, truncation logic — ~80% of the response function)
+Full hierarchical header cascade: root `/` → directory → extension → exact path, with specificity rules. More specific matches take priority over less specific ones.
 
-**Do this**: Exact-path lookup + root `/` fallback. Two KVS lookups maximum per request.
-
+- Root `/` match: applied as defaults to all requests
+- Directory match: `/blog/` headers apply to all paths under `/blog/`
+- Extension match: `*.xml` headers apply to all `.xml` files
 - Exact path match: `/blog/my-post/` → apply those headers
-- Root `/` match: apply as defaults (exact path headers take priority)
-- No wildcards, no directory hierarchy, no extension patterns
 
-This handles 95% of use cases (global security headers + per-page overrides) in ~20 lines of JS.
+More specific matches override less specific ones. Extension and exact-path headers take priority over directory headers, which take priority over root headers.
 
-**For users who want the same headers on every page**: Hugo generates `_cfheaders.json` with the header on every page path. Hugo is already enumerating pages — let it do the work.
+Hugo generates `_hedge_headers.json` with per-page header data. The CloudFront Function performs hierarchical lookups at the edge.
 
 ---
 
@@ -70,7 +69,7 @@ Two commands. `deploy --dry-run` replaces `validate`.
 
 ```
 cmd/hedgerules/main.go       # Entry point, flag parsing, config loading
-internal/hugo/               # Parse directories, _redirects, _cfheaders.json
+internal/hugo/               # Parse directories, _redirects, _hedge_headers.json
 internal/kvs/                # Validation, diff, sync via UpdateKeys
 internal/functions/          # Embed JS, deploy CloudFront Functions
   viewer-request.js          # Embedded: single-lookup redirect + index rewrite
@@ -124,7 +123,7 @@ CLI flags override config. Config is optional (all values can come from flags). 
 Test pure data transformation functions only:
 - Directory scanning → redirect entries
 - `_redirects` parsing → redirect entries
-- `_cfheaders.json` parsing → header entries
+- `_hedge_headers.json` parsing → header entries
 - Merge logic (file redirects override directory redirects)
 - Validation (key size, entry size, total size)
 
@@ -132,16 +131,14 @@ No AWS mocks. No interface abstractions for testability. Test the logic, not the
 
 ---
 
-## Simplified CloudFront Functions
+## CloudFront Functions
 
-### viewer-request.js (~15 lines)
+### viewer-request.js
 
-Single KVS lookup. If found, 301 redirect. If URI ends in `/`, append `index.html`. Done.
+Single KVS lookup. If found, 301 redirect. Follows redirect chains at deploy time (resolved before writing to KVS). If URI ends in `/`, append `index.html`. Done.
 
-No chain following. No loop. No max-redirect constant.
+### viewer-response.js
 
-### viewer-response.js (~25 lines)
+Hierarchical KVS lookups: exact path, extension, directory, then root `/`. Parse newline-delimited `Header: value` strings. More specific matches override less specific ones. Supports `{/path}` token substitution in header values.
 
-Two KVS lookups: exact path, then root `/`. Parse newline-delimited `Header: value` strings. Exact path headers win over root. Done.
-
-No hierarchical cascade. No wildcards. No `{/path}` token. No size tracking. No debug headers.
+Debug headers (`x-hedgerules-*`) are available but off by default. Enabled via variable injection into the function code at deploy time, using the same mechanism that injects the KVS name.

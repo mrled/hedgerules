@@ -549,3 +549,26 @@ The existing `examples/micahrlweb/` directory demonstrates the full AWS setup wi
 The CloudFormation template in the example manages the Distribution, S3 buckets, and other infrastructure. Hedgerules intentionally does **not** manage these - it only manages the Functions and KVS data. Users create the Distribution and KVS resources out of band (via CloudFormation, Terraform, or console).
 
 **Important**: Hedgerules **does** create/update CloudFront Functions, but expects the KVS to already exist. The KVS is typically created by the same infrastructure tool that creates the Distribution, since the Distribution's FunctionAssociations reference both the Function and the KVS.
+
+---
+
+## Updates 20260208
+
+The following changes were decided in the [Design Decisions]({{< relref "decisions" >}}) doc. Each item needs to be reflected across the codebase (Go code, JS functions, Hugo theme, docs, and tests).
+
+### Terminology rename
+
+- `_cfheaders.json` is now `_hedge_headers.json`. All references in code, config, docs, templates, and tests must be updated.
+
+### Features re-added (previously cut)
+
+1. **Redirect chain following** — At deploy time, resolve redirect chains to their final destination before writing to KVS. The viewer-request function still does a single lookup; chain resolution happens in the Go CLI during parsing.
+2. **`{/path}` token substitution** — Support `{/path}` tokens in header values. The viewer-response function substitutes the request path into header values at the edge.
+3. **Extension wildcard matching (`*.xml`)** — Match headers by file extension in addition to exact path and directory. The viewer-response function needs an extension-based KVS lookup.
+4. **Full hierarchical header cascade** — Replace the simplified exact-path + root fallback with a full cascade: root `/` → directory → extension → exact path. More specific matches override less specific ones. This affects both the Go CLI (how header entries are organized into KVS) and viewer-response.js (lookup order).
+
+### Debug headers
+
+- **Re-added** as `x-hedgerules-*` (previously `x-mrldbg-*`, previously cut entirely).
+- **Off by default.** Enabled via variable injection into the CloudFront Function code at deploy time, using the same `BuildFunctionCode` mechanism that already injects the KVS name.
+- The Go CLI needs a config/flag to toggle debug header injection. The viewer-response.js function needs conditional debug header logic gated on the injected variable.
