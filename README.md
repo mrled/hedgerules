@@ -1,6 +1,10 @@
 # Hedgerules
 
 > [!WARNING]
+> DEPRECATED: Probably just use AWS Amplify instead.
+
+
+> [!WARNING]
 > Current status: pre-alpha AI slop.
 
 Hedgerules (from Hugo Edge Rules) is designed to work with `hugo deploy` and AWS CloudFront.
