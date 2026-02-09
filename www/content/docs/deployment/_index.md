@@ -17,7 +17,7 @@ stages 2, 3, and 5 run on every content update.
   </thead>
   <tbody>
     <tr>
-      <td rowspan="7"><strong>1. CloudFormation stack</strong></td>
+      <td rowspan="8"><strong>1. CloudFormation stack</strong></td>
       <td>S3 content bucket</td>
       <td>Static file storage; no website hosting needed</td>
     </tr>
@@ -35,6 +35,11 @@ stages 2, 3, and 5 run on every content update.
       <!--<td></td>-->
       <td>ACM Certificate</td>
       <td>DNS validation for custom domain</td>
+    </tr>
+    <tr>
+      <!--<td></td>-->
+      <td>ACM validation DNS record</td>
+      <td>CNAME proving domain ownership; can be Route53 or out-of-band</td>
     </tr>
     <tr>
       <!--<td></td>-->
@@ -129,6 +134,36 @@ The KVS resources are safe in CloudFormation because CloudFormation does not tra
 
 The Distribution is in a separate stack (stage 4) because it references the function ARNs,
 which don't exist until `hedgerules deploy` creates them in stage 3.
+
+## Out-of-band DNS
+
+The table above includes DNS records in stages 1 and 4,
+but you may want to manage DNS outside of your CloudFormation stacks.
+Reasons to do this include:
+
+- **Credential separation.**
+  DNS changes can redirect all traffic for a domain.
+  Keeping DNS credentials separate from deployment credentials
+  limits the blast radius of a compromised deploy pipeline.
+- **Different AWS account.**
+  The DNS zone may live in a shared infrastructure account
+  while the site resources live in an application account.
+- **External DNS provider.**
+  The domain may be hosted outside of Route53 entirely.
+
+When DNS is out of band, the two DNS-related items become manual steps:
+
+1. **Stage 1:** After CloudFormation creates the ACM certificate,
+   look up the validation CNAME
+   (`aws acm describe-certificate --certificate-arn <ARN>`)
+   and add it to your DNS provider.
+   CloudFormation will pause until validation completes.
+2. **Stage 4:** After CloudFormation creates the distribution,
+   CNAME your domain to the `DistributionDomainName` output.
+
+The [`infra/prod/`](https://github.com/micahrl/hedgerules/tree/master/infra/prod)
+templates use this approach:
+they create the ACM certificate but expect DNS records to be managed externally.
 
 ## Initial setup
 
