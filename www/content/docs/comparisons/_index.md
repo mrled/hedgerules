@@ -47,6 +47,8 @@ Hedgerules is designed to work like this:
     <td>Netlify</td>
     <td>AWS Amplify</td>
     <td>AWS S3 Websites</td>
+    <td>Azure Static Web Apps</td>
+    <td>Google Firebase Hosting</td>
   </tr>
   <tr>
     <td>Redirects file</td>
@@ -54,6 +56,15 @@ Hedgerules is designed to work like this:
     <td><a href="https://docs.netlify.com/manage/routing/redirects/overview/#syntax-for-the-_redirects-file">_redirects</a></td>
     <td>None</td>
     <td>None</td>
+    <td>
+      <code>staticwebapp.config.json</code>'s <code>rewrite</code> and <code>redirect</code>
+      <a href="https://learn.microsoft.com/en-us/azure/static-web-apps/configuration#define-routes">rules</a>
+    </td>
+    <td>
+      <code>firebase.json</code>'s rules for
+      <a href="https://firebase.google.com/docs/hosting/full-config#redirects">redirects</a> and
+      <a href="https://firebase.google.com/docs/hosting/full-config#rewrites">rewrites</a>.
+    </td>
   </tr>
   <tr>
     <td>Other redirects methods</td>
@@ -67,17 +78,25 @@ Hedgerules is designed to work like this:
     </td>
     <td>
       <ul>
-        <li>Limited <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/how-to-page-redirect.html?utm_source=chatgpt.com#advanced-conditional-redirects">redirection rules</a></li>
-        <li>Limited <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/how-to-page-redirect.html?utm_source=chatgpt.com#redirect-requests-object-metadata">Website Redirect Location objects</a></li>
+        <li>Limited <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/how-to-page-redirect.html#advanced-conditional-redirects">redirection rules</a></li>
+        <li>Limited <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/how-to-page-redirect.html#redirect-requests-object-metadata">Website Redirect Location objects</a></li>
         <li>Custom CloudFront function<sup><a href="#cloudfront-functions">#</a></sup></li>
       </ul>
     </td>
+    <td></td>
+    <td></td>
   <tr>
     <td>Headers file</td>
     <td><code>_hedge_headers.json</code></td>
     <td><a href="https://docs.netlify.com/manage/routing/headers/">_headers</a></td>
     <td>None</td>
     <td>None</td>
+    <td>
+      <code>staticwebapp.conig.json</code>'s
+      <a href="https://learn.microsoft.com/en-us/azure/static-web-apps/configuration#global-headers">global headers</a>
+      and <a href="https://learn.microsoft.com/en-us/azure/static-web-apps/configuration#route-headers">route headers</a>
+    </td>
+    <td></td>
   </tr>
   <tr>
     <td>Other headers methods</td>
@@ -91,12 +110,16 @@ Hedgerules is designed to work like this:
         <li>Custom CloudFront function<sup><a href="#cloudfront-functions">#</a></sup></li>
       </ul>
     </td>
+    <td></td>
+    <td></td>
   <tr>
     <td><a href="/docs/headers/request-tokens">Request token</a> in headers</td>
     <td><code>{/path}</code></td>
     <td>None</td>
     <td>None</td>
     <td>None</td>
+    <td></td>
+    <td></td>
   </tr>
   <tr>
     <td>Deployment methods</td>
@@ -118,6 +141,8 @@ Hedgerules is designed to work like this:
       <code>hugo deploy</code>,
       then change redirects/headers out of band
     </td>
+    <td></td>
+    <td></td>
   </tr>
   <tr>
     <td>Access logs</td>
@@ -139,6 +164,8 @@ Hedgerules is designed to work like this:
       <a href="https://docs.aws.amazon.com/athena/">AWS Athena</a>,
       free<sup><a href="#athena-pricing">#</a></sup>
     </td>
+    <td></td>
+    <td></td>
   </tr>
 </table>
 </div>
