@@ -1,0 +1,192 @@
+---
+title: "Comparison table"
+type: passthru
+---
+
+<style>
+  table.comparison {
+    border-collapse: collapse;
+    font-family: system-ui, sans-serif;
+    font-size: 85%;
+
+    td, th {
+      border: 1px solid #ddd;
+      padding: 6px 10px;
+      vertical-align: top;
+    }
+
+    td p, td ul, td ol {
+      padding: 0;
+      margin: 0;
+    }
+    td li {
+      margin: 0 0 0 1em;
+      padding: 0;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #f0f0f0;
+      font-weight: 600;
+    }
+
+    td:first-child,
+    thead th:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: #f0f0f0;
+      font-weight: 600;
+    }
+
+    thead th:first-child {
+      z-index: 3;
+    }
+
+    tbody tr:nth-child(even) td {
+      background: #fafafa;
+    }
+    tbody tr:nth-child(even) td:first-child {
+      background: #e8e8e8;
+    }
+  }
+
+  :target {
+    background-color: mark;
+  }
+</style>
+
+<table class="comparison">
+  <thead>
+  <tr>
+    <th></th>
+    <th>Hedgerules</th>
+    <th>Netlify</th>
+    <th>AWS Amplify</th>
+    <th>AWS S3 Websites</th>
+    <th>Azure Static Web Apps</th>
+    <th>Google Firebase Hosting</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td>Redirects file</td>
+    <td><code>_hedge_redirects</code></td>
+    <td><a href="https://docs.netlify.com/manage/routing/redirects/overview/#syntax-for-the-_redirects-file">_redirects</a></td>
+    <td>None</td>
+    <td>None</td>
+    <td>
+      <code>staticwebapp.config.json</code>'s <code>rewrite</code> and <code>redirect</code>
+      <a href="https://learn.microsoft.com/en-us/azure/static-web-apps/configuration#define-routes">rules</a>
+    </td>
+    <td>
+      <code>firebase.json</code>'s rules for
+      <a href="https://firebase.google.com/docs/hosting/full-config#redirects">redirects</a> and
+      <a href="https://firebase.google.com/docs/hosting/full-config#rewrites">rewrites</a>.
+    </td>
+  </tr>
+  <tr>
+    <td>Other redirects methods</td>
+    <td>None</td>
+    <td><a href="https://docs.netlify.com/build/configure-builds/file-based-configuration/#redirects">redirects section</a> in <code>netlify.toml</code></td>
+    <td>
+      <ul>
+        <li><a href="https://docs.aws.amazon.com/amplify/latest/userguide/redirects.html">AWS console</a></li>
+        <li><code>CustomRules</code> in <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-amplify-app.html?utm_source=chatgpt.com#aws-resource-amplify-app-properties">CloudFormation template</a></li>
+      </ul>
+    </td>
+    <td>
+      <ul>
+        <li>Limited <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/how-to-page-redirect.html#advanced-conditional-redirects">redirection rules</a></li>
+        <li>Limited <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/how-to-page-redirect.html#redirect-requests-object-metadata">Website Redirect Location objects</a></li>
+        <li>Custom CloudFront function<sup><a href="#cloudfront-functions">#</a></sup></li>
+      </ul>
+    </td>
+    <td></td>
+    <td></td>
+  <tr>
+    <td>Headers file</td>
+    <td><code>_hedge_headers.json</code></td>
+    <td><a href="https://docs.netlify.com/manage/routing/headers/">_headers</a></td>
+    <td>None</td>
+    <td>None</td>
+    <td>
+      <code>staticwebapp.conig.json</code>'s
+      <a href="https://learn.microsoft.com/en-us/azure/static-web-apps/configuration#global-headers">global headers</a>
+      and <a href="https://learn.microsoft.com/en-us/azure/static-web-apps/configuration#route-headers">route headers</a>
+    </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Other headers methods</td>
+    <td>None</td>
+    <td><a href="https://docs.netlify.com/build/configure-builds/file-based-configuration/#headers">headers section</a> in <code>netlify.toml</code></td>
+    <td><a href="https://docs.aws.amazon.com/amplify/latest/userguide/custom-headers.html">customHttp.yml</a>
+    <td>
+      <ul>
+        <li>Limited headers via <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingMetadata.html">object metadata</a></li>
+        <li>Limited <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/understanding-response-headers-policies.html">CloudFront Response Headers Policy</a></li>
+        <li>Custom CloudFront function<sup><a href="#cloudfront-functions">#</a></sup></li>
+      </ul>
+    </td>
+    <td></td>
+    <td></td>
+  <tr>
+    <td><a href="/docs/headers/request-tokens">Request token</a> in headers</td>
+    <td><code>{/path}</code></td>
+    <td>None</td>
+    <td>None</td>
+    <td>None</td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Deployment methods</td>
+    <td>
+      <code>hugo deploy && hedgerules deploy</code>
+    </td>
+    <td>
+      <ul>
+        <code>git push</code>
+        or
+        <code>netlify deploy</code>
+      </ul>
+    </td>
+    <td>
+      <code>git push</code>,
+      then change redirects out of band
+    </td>
+    <td>
+      <code>hugo deploy</code>,
+      then change redirects/headers out of band
+    </td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Access logs</td>
+    <td>
+      <a href="https://docs.aws.amazon.com/athena/">AWS Athena</a>,
+      free<sup><a href="#athena-pricing">#</a></sup>
+    </td>
+    <td>
+      <ul>
+        <li>Raw access logs via <a href="https://docs.netlify.com/manage/monitoring/log-drains/">Log Drains</a> (enterprise-only "contact us" pricing)</li>
+        <li><a href="https://docs.netlify.com/manage/monitoring/web-analytics/how-web-analytics-works/">Web Analytics</a> shows data based on raw logs like unique visitors, top locations, etc ($9/mo/site)</li>
+      </ul>
+    </td>
+    <td>
+      <a href="https://docs.aws.amazon.com/athena/">AWS Athena</a>,
+      free<sup><a href="#athena-pricing">#</a></sup>
+    </td>
+    <td>
+      <a href="https://docs.aws.amazon.com/athena/">AWS Athena</a>,
+      free<sup><a href="#athena-pricing">#</a></sup>
+    </td>
+    <td></td>
+    <td></td>
+  </tr>
+  </tbody>
+</table>
