@@ -107,8 +107,8 @@ type: passthru
         <li>Custom CloudFront function<sup><a href="#cloudfront-functions">#</a></sup></li>
       </ul>
     </td>
-    <td></td>
-    <td></td>
+    <td>None</td>
+    <td>None</td>
   <tr>
     <td>Headers file</td>
     <td>
@@ -119,11 +119,14 @@ type: passthru
     <td>None</td>
     <td>None</td>
     <td>
-      <code>staticwebapp.conig.json</code>'s
+      <code>staticwebapp.config.json</code>'s
       <a href="https://learn.microsoft.com/en-us/azure/static-web-apps/configuration#global-headers">global headers</a>
       and <a href="https://learn.microsoft.com/en-us/azure/static-web-apps/configuration#route-headers">route headers</a>
     </td>
-    <td></td>
+    <td>
+      <code>firebase.json</code>'s
+      <a href="https://firebase.google.com/docs/hosting/full-config#headers">headers</a> rules
+    </td>
   </tr>
   <tr>
     <td>Other headers methods</td>
@@ -137,16 +140,16 @@ type: passthru
         <li>Custom CloudFront function<sup><a href="#cloudfront-functions">#</a></sup></li>
       </ul>
     </td>
-    <td></td>
-    <td></td>
+    <td>None</td>
+    <td>None</td>
   <tr>
     <td><a href="/docs/headers/request-tokens">Request token</a> in headers</td>
     <td><code>{/path}</code></td>
     <td>None</td>
     <td>None</td>
     <td>None</td>
-    <td></td>
-    <td></td>
+    <td>None</td>
+    <td>None</td>
   </tr>
   <tr>
     <td>Deployment methods</td>
@@ -168,8 +171,17 @@ type: passthru
       <code>hugo deploy</code>,
       then change redirects/headers out of band
     </td>
-    <td></td>
-    <td></td>
+    <td>
+      <ul>
+        <li>GitHub Actions (auto-generated)</li>
+        <li>Azure DevOps</li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/static-web-apps/static-web-apps-cli-deploy"><code>swa deploy</code></a></li>
+      </ul>
+    </td>
+    <td>
+      <code>firebase deploy</code>
+      or <a href="https://firebase.google.com/docs/hosting/github-integration">GitHub Actions</a>
+    </td>
   </tr>
   <tr>
     <td>Access logs</td>
@@ -191,8 +203,14 @@ type: passthru
       <a href="https://docs.aws.amazon.com/athena/">AWS Athena</a>,
       free<sup><a href="#athena-pricing">#</a></sup>
     </td>
-    <td></td>
-    <td></td>
+    <td>
+      Via <a href="https://azure.microsoft.com/en-us/products/frontdoor">Azure Front Door</a>,
+      $35/mo+.<sup><a href="#azure-access-logs">#</a></sup>
+    </td>
+    <td>
+      <a href="https://firebase.google.com/docs/hosting/web-request-logs-and-metrics">Cloud Logging</a>,
+      free<sup><a href="#firebase-logging-pricing">#</a></sup>
+    </td>
   </tr>
   </tbody>
 </table>
@@ -210,8 +228,25 @@ type: passthru
   <li id="athena-pricing">
     <p>
       The Athena feature is free,
+      and log ingestion is free,
       but logs and Athena query results both incur storage costs on S3,
       and querying logs via Athena incurs execution costs.
+    </p>
+  </li>
+  <li id="azure-access-logs">
+    <p>
+      Azure Front Door pricing varies depending on service level and traffic.
+    </p>
+    <p>
+      <a href="https://learn.microsoft.com/en-us/azure/static-web-apps/monitor">Application Insights</a>
+      monitors API function invocations only, not static content requests.
+    </p>
+  </li>
+  <li id="firebase-logging-pricing">
+    <p>
+      The Cloud Logging feature is free,
+      and querying it is free,
+      but log ingestion and storage incur costs after 50GB/mo.
     </p>
   </li>
 </ol>
