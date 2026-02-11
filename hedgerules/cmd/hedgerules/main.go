@@ -236,13 +236,13 @@ func runDeploy(args []string) {
 
 	// Step 8: Deploy CloudFront Functions
 	fmt.Fprintf(os.Stderr, "Deploying viewer-request function...\n")
-	requestCode := functions.BuildFunctionCode(functions.ViewerRequestJS, redirectsARN, false)
+	requestCode := functions.BuildFunctionCode(functions.ViewerRequestJS, functions.KVSIDFromARN(redirectsARN), false)
 	if err := functions.DeployFunction(ctx, cfClient, cfg.Functions.RequestName, requestCode, redirectsARN); err != nil {
 		fatal("deploying viewer-request function: %v", err)
 	}
 
 	fmt.Fprintf(os.Stderr, "Deploying viewer-response function...\n")
-	responseCode := functions.BuildFunctionCode(functions.ViewerResponseJS, headersARN, cfg.Functions.DebugHeaders)
+	responseCode := functions.BuildFunctionCode(functions.ViewerResponseJS, functions.KVSIDFromARN(headersARN), cfg.Functions.DebugHeaders)
 	if err := functions.DeployFunction(ctx, cfClient, cfg.Functions.ResponseName, responseCode, headersARN); err != nil {
 		fatal("deploying viewer-response function: %v", err)
 	}

@@ -4,10 +4,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
 	cftypes "github.com/aws/aws-sdk-go-v2/service/cloudfront/types"
 )
+
+// KVSIDFromARN extracts the KVS ID (UUID) from a full KVS ARN.
+// ARN format: arn:aws:cloudfront::ACCOUNT:key-value-store/KVS_ID
+func KVSIDFromARN(arn string) string {
+	if i := strings.LastIndex(arn, "/"); i >= 0 {
+		return arn[i+1:]
+	}
+	return arn
+}
 
 // CFClient abstracts the CloudFront Functions API.
 type CFClient interface {
