@@ -73,7 +73,10 @@ type: passthru
   <tbody>
   <tr>
     <td>Redirects file</td>
-    <td><code>_hedge_redirects</code></td>
+    <td>
+      <code>_hedge_redirects</code>, see
+      <a href="/docs/redirects/">Redirects</a>.
+    </td>
     <td><a href="https://docs.netlify.com/manage/routing/redirects/overview/#syntax-for-the-_redirects-file">_redirects</a></td>
     <td>None</td>
     <td>None</td>
@@ -108,7 +111,10 @@ type: passthru
     <td></td>
   <tr>
     <td>Headers file</td>
-    <td><code>_hedge_headers.json</code></td>
+    <td>
+      <code>_hedge_headers.json</code>, see
+      <a href="/docs/headers/">Headers</a>.
+    </td>
     <td><a href="https://docs.netlify.com/manage/routing/headers/">_headers</a></td>
     <td>None</td>
     <td>None</td>
@@ -191,19 +197,21 @@ type: passthru
   </tbody>
 </table>
 
-<h2 id="cloudfront-functions">CloudFront Functions</h2>
+<h2 id="Footnotes">Footnotes</h2>
 
-<p>
-  S3 Websites can use CloudFront functions to implement custom logic
-  for directory redirects, index rewrites, and custom headers.
-</p>
-
-<p>This is the same functionality that Hedgerules uses under the hood.</p>
-
-<h2 id="athena-pricing">Athena pricing</h2>
-
-<p>
-  The Athena feature is free,
-  but logs and Athena query results both incur storage costs on S3,
-  and querying logs via Athena incurs execution costs.
-</p>
+<ol>
+  <li id="cloudfront-functions">
+    <p>
+      S3 Websites can use CloudFront functions to implement custom logic
+      for directory redirects, index rewrites, and custom headers.
+    </p>
+    <p>This is the same functionality that Hedgerules uses under the hood.</p>
+    </li>
+  <li id="athena-pricing">
+    <p>
+      The Athena feature is free,
+      but logs and Athena query results both incur storage costs on S3,
+      and querying logs via Athena incurs execution costs.
+    </p>
+  </li>
+</ol>
