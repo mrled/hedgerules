@@ -17,17 +17,6 @@ See the [Feature comparison table]({{< ref "docs/comparisons/table" >}})
 for a comparison of Hedgerules with cloud services like
 Netlify, AWS Amplify, GCP Firebase, and Azure Static Websites.
 
-### CloudFront Functions
-
-S3 Websites can use CloudFront functions to implement custom logic
-for directory redirects, index rewrites, and custom headers.
-
-### Athena pricing
-
-The Athena feature is free,
-but logs and Athena query results both incur storage costs on S3,
-and querying logs via Athena incurs execution costs.
-
 ## CloudFront + S3: REST vs Websites
 
 AWS offers two ways to serve objects from S3 as a static website,
