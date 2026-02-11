@@ -39,8 +39,8 @@ title = "Hedgerules"
 # Run: hugo deploy --target mysite
 [deployment]
   [[deployment.targets]]
-    name = "mysite"
-    URL = "s3://my-hugo-site-bucket?region=us-east-1"
-    cloudFrontDistributionID = "MY-ID-HERE"
+    name = "hedgerules-micahrl-com-s3"
+    URL = "s3://hedgerules-micahrl-com?region=us-east-1"
+    cloudFrontDistributionID = "ET01CEXG1S3P9"
     invalidateCDN = true
     maxDeletes = -1

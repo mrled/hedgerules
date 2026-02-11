@@ -1,0 +1,117 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Stage 4: CloudFront distribution for hedgerules.micahrl.com"
+
+# Deploy in us-east-1 (same region as the stage 1 stack).
+#
+# Before deploying this stack, run hedgerules deploy (stage 3) to create
+# the CloudFront Functions. This stack references them by name.
+#
+# After deploying, CNAME your domain to the DistributionDomainName output.
+
+Parameters:
+  Domain:
+    Type: String
+    Default: hedgerules.micahrl.com
+
+  ContentBucketName:
+    Type: String
+    Description: S3 bucket name (from stage 1 ContentBucketName output)
+
+  ContentBucketRegionalDomainName:
+    Type: String
+    Description: S3 bucket regional domain name (from stage 1 ContentBucketRegionalDomainName output)
+
+  OriginAccessControlId:
+    Type: String
+    Description: OAC ID (from stage 1 OriginAccessControlId output)
+
+  CertificateArn:
+    Type: String
+    Description: ACM certificate ARN (from stage 1 CertificateArn output)
+
+  RequestFunctionName:
+    Type: String
+    Description: Name of the viewer-request CloudFront Function (from hedgerules.toml functions.request-name)
+
+  ResponseFunctionName:
+    Type: String
+    Description: Name of the viewer-response CloudFront Function (from hedgerules.toml functions.response-name)
+
+Resources:
+
+  ContentBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ContentBucketName
+      PolicyDocument:
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipalReadOnly
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub "arn:aws:s3:::${ContentBucketName}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}"
+
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        HttpVersion: http2and3
+        Comment: !Sub "CloudFront distribution for ${Domain}"
+
+        Aliases:
+          - !Ref Domain
+        ViewerCertificate:
+          AcmCertificateArn: !Ref CertificateArn
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+
+        Origins:
+          - Id: S3Origin
+            DomainName: !Ref ContentBucketRegionalDomainName
+            OriginAccessControlId: !Ref OriginAccessControlId
+            S3OriginConfig: {}
+
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+          CachedMethods:
+            - GET
+            - HEAD
+          Compress: true
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6  # CachingOptimized managed policy
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !Sub "arn:aws:cloudfront::${AWS::AccountId}:function/${RequestFunctionName}"
+            - EventType: viewer-response
+              FunctionARN: !Sub "arn:aws:cloudfront::${AWS::AccountId}:function/${ResponseFunctionName}"
+
+        DefaultRootObject: index.html
+
+        # S3 with OAC returns 403 for missing objects, map to 404 page
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 404
+            ResponsePagePath: /404.html
+            ErrorCachingMinTTL: 300
+
+        PriceClass: PriceClass_100
+
+Outputs:
+  DistributionId:
+    Description: Use in hugo.toml as deployment.targets.cloudFrontDistributionID
+    Value: !Ref Distribution
+
+  DistributionDomainName:
+    Description: CNAME your domain to this value
+    Value: !GetAtt Distribution.DomainName
+
+  WebsiteURL:
+    Value: !Sub "https://${Domain}"

@@ -1,0 +1,172 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Stage 1: Base infrastructure for hedgerules.micahrl.com"
+
+# Deploy in us-east-1 (required for ACM certificates used by CloudFront).
+#
+# The ACM certificate uses DNS validation. CloudFormation will pause during
+# creation until the certificate is validated. While the stack is waiting:
+#   1. Find the CNAME validation record:
+#      aws acm list-certificates --region us-east-1
+#      aws acm describe-certificate --certificate-arn <ARN> --region us-east-1
+#   2. Add the CNAME record to your external DNS provider.
+#   3. Wait for validation to complete (usually a few minutes).
+
+Parameters:
+  Domain:
+    Type: String
+    Default: hedgerules.micahrl.com
+
+  BucketName:
+    Type: String
+    Default: hedgerules-micahrl-com
+
+Resources:
+
+  # --- S3 ---
+
+  ContentBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # --- CloudFront origin access ---
+
+  OriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${AWS::StackName}-oac"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  # --- HTTPS ---
+
+  Certificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Ref Domain
+      ValidationMethod: DNS
+
+  # --- Key Value Stores ---
+
+  RedirectsKvs:
+    Type: AWS::CloudFront::KeyValueStore
+    Properties:
+      Name: !Sub "${AWS::StackName}-redirects"
+      Comment: !Sub "Redirect mappings for ${Domain}"
+
+  HeadersKvs:
+    Type: AWS::CloudFront::KeyValueStore
+    Properties:
+      Name: !Sub "${AWS::StackName}-headers"
+      Comment: !Sub "Custom response headers for ${Domain}"
+
+  # --- IAM ---
+
+  DeployerGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: !Sub "${AWS::StackName}-Deployers"
+      Policies:
+        - PolicyName: S3Access
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: AllowS3BucketListing
+                Effect: Allow
+                Action:
+                  - s3:ListBucket
+                Resource:
+                  - !GetAtt ContentBucket.Arn
+              - Sid: AllowS3ObjectOperations
+                Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:DeleteObject
+                Resource:
+                  - !Sub "${ContentBucket.Arn}/*"
+        - PolicyName: KvsAccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: AllowListKeyValueStores
+                Effect: Allow
+                Action:
+                  - cloudfront:ListKeyValueStores
+                Resource: "*"
+              - Sid: AllowKvsManagement
+                Effect: Allow
+                Action:
+                  - cloudfront-keyvaluestore:DescribeKeyValueStore
+                  - cloudfront-keyvaluestore:ListKeys
+                  - cloudfront-keyvaluestore:UpdateKeys
+                Resource:
+                  - !GetAtt RedirectsKvs.Arn
+                  - !GetAtt HeadersKvs.Arn
+        - PolicyName: CloudFrontAccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: AllowFunctionManagement
+                Effect: Allow
+                Action:
+                  - cloudfront:DescribeFunction
+                  - cloudfront:GetFunction
+                  - cloudfront:CreateFunction
+                  - cloudfront:UpdateFunction
+                  - cloudfront:PublishFunction
+                Resource:
+                  - !Sub "arn:aws:cloudfront::${AWS::AccountId}:function/*"
+              - Sid: AllowCloudFrontInvalidation
+                Effect: Allow
+                Action:
+                  - cloudfront:CreateInvalidation
+                  - cloudfront:GetInvalidation
+                Resource:
+                  - !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/*"
+
+Outputs:
+  ContentBucketName:
+    Value: !Ref ContentBucket
+
+  ContentBucketArn:
+    Value: !GetAtt ContentBucket.Arn
+
+  ContentBucketRegionalDomainName:
+    Description: Use as ContentBucketRegionalDomainName in the stage 4 stack
+    Value: !GetAtt ContentBucket.RegionalDomainName
+
+  OriginAccessControlId:
+    Description: Use as OriginAccessControlId in the stage 4 stack
+    Value: !Ref OriginAccessControl
+
+  CertificateArn:
+    Description: Use as CertificateArn in the stage 4 stack
+    Value: !Ref Certificate
+
+  RedirectsKvsName:
+    Description: Use in hedgerules.toml as redirects.kvs-name
+    Value: !Sub "${AWS::StackName}-redirects"
+
+  RedirectsKvsArn:
+    Value: !GetAtt RedirectsKvs.Arn
+
+  HeadersKvsName:
+    Description: Use in hedgerules.toml as headers.kvs-name
+    Value: !Sub "${AWS::StackName}-headers"
+
+  HeadersKvsArn:
+    Value: !GetAtt HeadersKvs.Arn
+
+  DeployerGroupName:
+    Value: !Ref DeployerGroup
+
+  DeployerGroupArn:
+    Value: !GetAtt DeployerGroup.Arn

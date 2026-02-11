@@ -1,0 +1,12 @@
+output-dir = "www/public/production"
+region = "us-east-1"
+
+[redirects]
+kvs-name = "hedgerules-base-prod-redirects"
+
+[headers]
+kvs-name = "hedgerules-base-prod-headers"
+
+[functions]
+request-name = "hedgerules-base-prod-viewer-request"
+response-name = "hedgerules-base-prod-viewer-response"

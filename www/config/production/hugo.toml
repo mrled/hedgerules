@@ -1,2 +1,2 @@
-baseURL = "https://pages.micahrl.com/hedgerules/"
+baseURL = "https://hedgerules.micahrl.com/"
 publishDir = "public/production"
