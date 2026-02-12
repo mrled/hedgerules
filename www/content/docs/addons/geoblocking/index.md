@@ -1,5 +1,5 @@
 ---
-title: Geoblocking (TODO)
+title: Geoblocking (untested)
 ---
 
 Blocking clients from parts of the world via CloudFront geographic restrictions.

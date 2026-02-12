@@ -184,10 +184,144 @@ type: passthru
     </td>
   </tr>
   <tr>
+    <td>User-Agent blocking</td>
+    <td>
+      AWS WAF string match rules on CloudFront,
+      ~$7/mo<sup><a href="#aws-waf-pricing">#</a></sup>,
+      see <a href='{{< ref "/docs/addons/waf/" >}}'>AWS WAF</a> docs.
+    </td>
+    <td>
+      Not available<sup><a href="#netlify-firewall">#</a></sup>
+    </td>
+    <td>
+      <a href="https://docs.aws.amazon.com/amplify/latest/userguide/WAF-integration.html">AWS WAF</a>
+      string match rules,
+      ~$21/mo<sup><a href="#amplify-waf-pricing">#</a></sup>
+    </td>
+    <td>
+      <a href="https://aws.amazon.com/waf/pricing/">AWS WAF</a>
+      string match rules on CloudFront,
+      ~$7/mo<sup><a href="#aws-waf-pricing">#</a></sup>
+    </td>
+    <td>
+      <a href="https://learn.microsoft.com/en-us/azure/web-application-firewall/afds/waf-front-door-custom-rules">Azure Front Door WAF</a>
+      custom rules,
+      ~$50/mo+<sup><a href="#azure-waf-pricing">#</a></sup>
+    </td>
+    <td>
+      Not available<sup><a href="#firebase-no-waf">#</a></sup>
+    </td>
+  </tr>
+  <tr>
+    <td>Country blocking</td>
+    <td>
+      <ul>
+        <li>
+          AWS WAF geo match rules on CloudFront,
+          ~$7/mo<sup><a href="#aws-waf-pricing">#</a></sup>,
+          see <a href='{{< ref "/docs/addons/waf/" >}}'>AWS WAF</a> docs.
+        </li>
+        <li>
+          CloudFront geographic restrictions, free<sup><a href="#cloudfront-geo">#</a></sup>,
+          see <a href='{{< ref "/docs/addons/geoblocking/" >}}'>Geoblocking</a> docs.
+        </li>
+      </ul>
+    </td>
+    <td>
+      <a href="https://docs.netlify.com/manage/security/secure-access-to-sites/traffic-rules/">Firewall Traffic Rules</a>,
+      limited on free/pro<sup><a href="#netlify-firewall">#</a></sup>
+    </td>
+    <td>
+      <a href="https://docs.aws.amazon.com/amplify/latest/userguide/WAF-integration.html">AWS WAF</a>
+      geo match rules,
+      ~$21/mo<sup><a href="#amplify-waf-pricing">#</a></sup>
+    </td>
+    <td>
+      <ul>
+        <li>
+          <a href="https://aws.amazon.com/waf/pricing/">AWS WAF</a>
+          geo match rules on CloudFront,
+          ~$7/mo<sup><a href="#aws-waf-pricing">#</a></sup>
+        </li>
+        <li>
+          <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/georestrictions.html">CloudFront geographic restrictions</a>,
+          free<sup><a href="#cloudfront-geo">#</a></sup>
+        </li>
+      </ul>
+    </td>
+    <td>
+      <a href="https://learn.microsoft.com/en-us/azure/web-application-firewall/afds/waf-front-door-geo-filtering">Azure Front Door WAF</a>
+      geo-filtering rules,
+      ~$50/mo+<sup><a href="#azure-waf-pricing">#</a></sup>
+    </td>
+    <td>
+      Not available<sup><a href="#firebase-no-waf">#</a></sup>
+    </td>
+  </tr>
+  <tr>
+    <td>IP range blocking</td>
+    <td>
+      AWS WAF IP set match rules on CloudFront,
+      ~$7/mo<sup><a href="#aws-waf-pricing">#</a></sup>,
+      see <a href='{{< ref "/docs/addons/waf/" >}}'>AWS WAF</a> docs.
+    </td>
+    <td>
+      <a href="https://docs.netlify.com/manage/security/secure-access-to-sites/traffic-rules/">Firewall Traffic Rules</a>,
+      limited on free/pro<sup><a href="#netlify-firewall">#</a></sup>
+    </td>
+    <td>
+      <a href="https://docs.aws.amazon.com/amplify/latest/userguide/WAF-integration.html">AWS WAF</a>
+      IP set match rules,
+      ~$21/mo<sup><a href="#amplify-waf-pricing">#</a></sup>
+    </td>
+    <td>
+      <a href="https://aws.amazon.com/waf/pricing/">AWS WAF</a>
+      IP set match rules on CloudFront,
+      ~$7/mo<sup><a href="#aws-waf-pricing">#</a></sup>
+    </td>
+    <td>
+      <a href="https://learn.microsoft.com/en-us/azure/web-application-firewall/afds/waf-front-door-configure-ip-restriction">Azure Front Door WAF</a>
+      IP restriction rules,
+      ~$50/mo+<sup><a href="#azure-waf-pricing">#</a></sup>
+    </td>
+    <td>
+      Not available<sup><a href="#firebase-no-waf">#</a></sup>
+    </td>
+  </tr>
+  <tr>
+    <td>Referrer blocking</td>
+    <td>
+      AWS WAF string match rules on <code>Referer</code> header,
+      ~$7/mo<sup><a href="#aws-waf-pricing">#</a></sup>
+      see <a href='{{< ref "/docs/addons/waf/" >}}'>AWS WAF</a> docs.
+    </td>
+    <td>
+      Not available<sup><a href="#netlify-firewall">#</a></sup>
+    </td>
+    <td>
+      <a href="https://docs.aws.amazon.com/amplify/latest/userguide/WAF-integration.html">AWS WAF</a>
+      string match rules on <code>Referer</code> header,
+      ~$21/mo<sup><a href="#amplify-waf-pricing">#</a></sup>
+    </td>
+    <td>
+      <a href="https://aws.amazon.com/waf/pricing/">AWS WAF</a>
+      string match rules on <code>Referer</code> header,
+      ~$7/mo<sup><a href="#aws-waf-pricing">#</a></sup>
+    </td>
+    <td>
+      <a href="https://learn.microsoft.com/en-us/azure/web-application-firewall/afds/waf-front-door-custom-rules">Azure Front Door WAF</a>
+      custom rules on <code>Referer</code> header,
+      ~$50/mo+<sup><a href="#azure-waf-pricing">#</a></sup>
+    </td>
+    <td>
+      Not available<sup><a href="#firebase-no-waf">#</a></sup>
+    </td>
+  </tr>
+  <tr>
     <td>Access logs</td>
     <td>
-      <a href="https://docs.aws.amazon.com/athena/">AWS Athena</a>,
-      free<sup><a href="#athena-pricing">#</a></sup>
+      AWS Athena, free<sup><a href="#athena-pricing">#</a></sup>,
+      see <a href="{{< ref "/docs/addons/athena/" >}}">Athena access logs</a> docs.
     </td>
     <td>
       <ul>
@@ -247,6 +381,57 @@ type: passthru
       The Cloud Logging feature is free,
       and querying it is free,
       but log ingestion and storage incur costs after 50GB/mo.
+    </p>
+  </li>
+  <li id="aws-waf-pricing">
+    <p>
+      <a href="https://aws.amazon.com/waf/pricing/">AWS WAF a la carte pricing</a>:
+      $5/month per Web ACL + $1/month per rule + $0.60 per 1M requests.
+      The <a href="https://aws.amazon.com/cloudfront/pricing/">CloudFront flat-rate Pro plan</a>
+      at $15/month includes 25 WAF rules with 10M requests/month.
+    </p>
+  </li>
+  <li id="amplify-waf-pricing">
+    <p>
+      AWS Amplify charges a
+      <a href="https://docs.aws.amazon.com/amplify/latest/userguide/waf-pricing.html">$15/month firewall integration fee</a>
+      per app on top of standard
+      <a href="https://aws.amazon.com/waf/pricing/">AWS WAF charges</a>
+      ($5/month per Web ACL + $1/month per rule + $0.60 per 1M requests).
+    </p>
+  </li>
+  <li id="netlify-firewall">
+    <p>
+      Netlify's <a href="https://docs.netlify.com/manage/security/secure-access-to-sites/traffic-rules/">Firewall Traffic Rules</a>
+      support IP and geo-based blocking but not User-Agent blocking.
+      Free and Pro plans get a limited number of rules;
+      full firewall capabilities require the Enterprise plan.
+    </p>
+  </li>
+  <li id="azure-waf-pricing">
+    <p>
+      Azure Static Web Apps requires
+      <a href="https://learn.microsoft.com/en-us/azure/frontdoor/web-application-firewall">Azure Front Door</a>
+      as a separate service to use WAF.
+      Approximate cost: $9/month for Static Web Apps Standard
+      + Front Door base fee
+      + ~$35/month for the
+      <a href="https://azure.microsoft.com/en-us/pricing/details/web-application-firewall/">WAF custom rules policy</a>.
+    </p>
+  </li>
+  <li id="firebase-no-waf">
+    <p>
+      Firebase Hosting has no WAF, IP blocking, geo blocking, or User-Agent blocking.
+      <a href="https://cloud.google.com/armor">Cloud Armor</a>
+      cannot be attached to Firebase Hosting directly.
+    </p>
+  </li>
+  <li id="cloudfront-geo">
+    <p>
+      CloudFront's built-in
+      <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/georestrictions.html">geographic restrictions</a>
+      are free and require no code, but apply to the entire distribution
+      and return a generic 403. WAF geo match rules are more flexible.
     </p>
   </li>
 </ol>
