@@ -1,0 +1,9 @@
+// Make nav links look unclickable if they cannot be clicked (which happens if the page has no content)
+nav li a:not([href]) {
+  color: var(--gray-500);
+}
+
+// Show the current page in the nav by making the link bold
+nav li a.active {
+  font-weight: bold;
+}
