@@ -1,62 +1,33 @@
 # Hedgerules
 
-> [!WARNING]
-> DEPRECATED: Probably just use AWS Amplify instead.
+Hedgerules (Hugo Edge Rules) makes `hugo deploy` work seamlessly with CloudFront and S3.
 
+It was created to provide directory redirects, index rewrites, and custom headers for AWS-hosted Hugo sites,
+to enable migration from Netlify which implements those features natively.
 
-> [!WARNING]
-> Current status: pre-alpha AI slop.
+When using CloudFront with S3 REST (private bucket, HTTPS to S3),
+you have to implement directory index redirects, index file rewriting,
+custom headers, and redirects yourself.
+Hedgerules implements these features using CloudFront Functions
+and CloudFront Key Value Store (KVS).
 
-Hedgerules (from Hugo Edge Rules) is designed to work with `hugo deploy` and AWS CloudFront.
+See <https://hedgerules.micahrl.com> for complete documentation and examples.
+That site is deployed with Hedgerules!
 
-When deploying to CloudFront with S3 Static Website Hosting,
-you have to implement custom headers and redirects yourself.
-If you want to use CloudFront with S3 Object Storage API,
-you also have to implement directory indices yourself
-so that `/path` redirects to `/path/` and returns `/path/index.html` out of S3.
-These are things bundled with services like Netlify.
+Deployment workflow:
 
-(TODO: Add notes on why you might want to use CloudFront with S3 Object Storage API
-instaed of S3 Static Website Hosting.)
+1. Create S3 bucket, CloudFront Distribution, and KVS resources out of band (e.g. CloudFormation).
+2. Run `hugo` to build the site, generating `_hedge_redirects.txt` and `_hedge_headers.json`.
+3. Run `hedgerules deploy` to create/update CloudFront Functions and sync KVS entries.
+4. Run `hugo deploy` to publish the site to S3 and invalidate the CloudFront cache.
 
-Hedgerules exists to implement these features with platform-native objects
-like CloudFront Functions and CloudFront Key Value Store (KVS).
-Any path in a CloudFront Distribution can be handled by
-at most one Viewer Request Function and at most one Viewer Response Function,
-each of which can get data from a KVS.
-Hedgerules sets function logic to implement headers, redirects, and indices,
-and reads your built Hugo site to generate KVS items for each.
+See the [deployment docs](https://hedgerules.micahrl.com/docs/deployment/) for the full 5-stage setup.
 
-This lets you deploy a Hugo + Hedgerules site like this:
+## Contributing
 
-- Use `hedgerules deploy` to create the CloudFront Function and KVS for viewer request/response.
-- Create an S3 bucket and CloudFront Distribution out of band.
-  The CloudFront Distribution keeps a reference to the S3 bucket
-  and the Functions.
-- Use `hugo deploy` like normal to publish the site to the S3 bucket
-  and invalidate the CloudFront cache.
+Contributions welcome.
+I'm especially interested in:
 
-We also include examples for:
-
-- A Hugo theme with a template for generating a Hedgerules redirect JSON file.
-- A CloudFormation template that deploys the S3 bucket and the CloudFront Distribution.
-  It also includes log analysis with Athena.
-- A Hugo site with documentation for Hedgerules.
-  Aside from the docs, this site also serves as an example site for users to reference,
-  and contains paths we can use for testing.
-
-Tests:
-
-- Test header injection based on exact path, parent path, and wildcard
-- Test header injection with the special `{/path}` token
-- Test redirects from Hugo aliases
-- Test user-defined redirects
-- Test index redirects (`/path` -> `/path/`)
-- Test index responses (A request for `/path/` should return the S3 object at `/path/index.html`)
-
-Future ideas:
-
-- Implement support for other clouds, particularly Azure and GCP since Hugo Deploy supports those.
-- Have Hedgerules parse the Hugo config file for special site parameters
-  so the user can define the Function and KVS object names in one place,
-  next to `hugo deploy` settings.
+- Supporting more clouds
+- Some form of HTTP basic authentication
+- Other features that would be useful and free (or basically free) for personal-scale websites
