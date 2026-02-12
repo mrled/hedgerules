@@ -1,0 +1,163 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: IAM group for CI/CD deployment of hedgerules
+
+# This template creates an IAM group whose members can:
+# - Deploy CloudFormation stacks (base and distribution)
+# - Deploy the Hugo site and hedgerules CLI artifacts (via the DeployerGroup in base.cfn.yml)
+#
+# Create a user in this group and generate access keys for use in GitHub Actions.
+
+Parameters:
+  BaseStackName:
+    Type: String
+    Default: hedgerules-base-prod
+    Description: Name of the base CloudFormation stack
+
+  DistributionStackName:
+    Type: String
+    Default: hedgerules-distrib-prod
+    Description: Name of the distribution CloudFormation stack
+
+Resources:
+  CiGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: !Sub "${AWS::StackName}-ci"
+      Policies:
+        - PolicyName: CloudFormationDeploy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: AllowCloudFormationOperations
+                Effect: Allow
+                Action:
+                  - cloudformation:CreateStack
+                  - cloudformation:UpdateStack
+                  - cloudformation:DescribeStacks
+                  - cloudformation:DescribeStackEvents
+                  - cloudformation:GetTemplate
+                  - cloudformation:GetTemplateSummary
+                  - cloudformation:CreateChangeSet
+                  - cloudformation:DescribeChangeSet
+                  - cloudformation:ExecuteChangeSet
+                  - cloudformation:DeleteChangeSet
+                  - cloudformation:ListStacks
+                Resource:
+                  - !Sub "arn:aws:cloudformation:us-east-1:${AWS::AccountId}:stack/${BaseStackName}/*"
+                  - !Sub "arn:aws:cloudformation:us-east-1:${AWS::AccountId}:stack/${DistributionStackName}/*"
+
+        - PolicyName: CloudFormationResourceProvisioning
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: AllowS3Management
+                Effect: Allow
+                Action:
+                  - s3:CreateBucket
+                  - s3:DeleteBucket
+                  - s3:PutBucketPolicy
+                  - s3:DeleteBucketPolicy
+                  - s3:GetBucketPolicy
+                  - s3:PutBucketPublicAccessBlock
+                  - s3:GetBucketPublicAccessBlock
+                  - s3:PutLifecycleConfiguration
+                  - s3:GetLifecycleConfiguration
+                  - s3:PutBucketOwnershipControls
+                  - s3:GetBucketOwnershipControls
+                Resource: "*"
+              - Sid: AllowACMManagement
+                Effect: Allow
+                Action:
+                  - acm:RequestCertificate
+                  - acm:DeleteCertificate
+                  - acm:DescribeCertificate
+                  - acm:ListCertificates
+                Resource: "*"
+              - Sid: AllowCloudFrontManagement
+                Effect: Allow
+                Action:
+                  - cloudfront:CreateDistribution
+                  - cloudfront:UpdateDistribution
+                  - cloudfront:GetDistribution
+                  - cloudfront:DeleteDistribution
+                  - cloudfront:TagResource
+                  - cloudfront:UntagResource
+                  - cloudfront:CreateOriginAccessControl
+                  - cloudfront:UpdateOriginAccessControl
+                  - cloudfront:GetOriginAccessControl
+                  - cloudfront:DeleteOriginAccessControl
+                  - cloudfront:CreateKeyValueStore
+                  - cloudfront:DeleteKeyValueStore
+                  - cloudfront:DescribeKeyValueStore
+                  - cloudfront:ListKeyValueStores
+                Resource: "*"
+              - Sid: AllowIAMGroupManagement
+                Effect: Allow
+                Action:
+                  - iam:CreateGroup
+                  - iam:DeleteGroup
+                  - iam:GetGroup
+                  - iam:PutGroupPolicy
+                  - iam:DeleteGroupPolicy
+                  - iam:GetGroupPolicy
+                  - iam:ListGroupPolicies
+                Resource:
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:group/${BaseStackName}-*"
+              - Sid: AllowAthenaGlueManagement
+                Effect: Allow
+                Action:
+                  - athena:CreateWorkGroup
+                  - athena:DeleteWorkGroup
+                  - athena:GetWorkGroup
+                  - athena:UpdateWorkGroup
+                  - glue:CreateDatabase
+                  - glue:DeleteDatabase
+                  - glue:GetDatabase
+                  - glue:CreateTable
+                  - glue:DeleteTable
+                  - glue:GetTable
+                  - glue:UpdateTable
+                Resource: "*"
+
+        - PolicyName: DeployerGroupMembership
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: AllowAssumeDeployerPermissions
+                Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:DeleteObject
+                Resource: "*"
+              - Sid: AllowKvsOperations
+                Effect: Allow
+                Action:
+                  - cloudfront:ListKeyValueStores
+                  - cloudfront-keyvaluestore:DescribeKeyValueStore
+                  - cloudfront-keyvaluestore:ListKeys
+                  - cloudfront-keyvaluestore:UpdateKeys
+                Resource: "*"
+              - Sid: AllowFunctionOperations
+                Effect: Allow
+                Action:
+                  - cloudfront:DescribeFunction
+                  - cloudfront:GetFunction
+                  - cloudfront:CreateFunction
+                  - cloudfront:UpdateFunction
+                  - cloudfront:PublishFunction
+                Resource: "*"
+              - Sid: AllowCloudFrontInvalidation
+                Effect: Allow
+                Action:
+                  - cloudfront:CreateInvalidation
+                  - cloudfront:GetInvalidation
+                Resource: "*"
+
+Outputs:
+  CiGroupName:
+    Value: !Ref CiGroup
+
+  CiGroupArn:
+    Value: !GetAtt CiGroup.Arn

@@ -132,3 +132,40 @@ You could invoke this explicitly to avoid regenerating the CloudFormation output
 ```sh
 make hugo-build hedgerules-deploy hugo-deploy
 ```
+
+## CI/CD
+
+Hedgerules uses GitHub actions to deploy the AWS infrastructure and the site content.
+To enable this, there is a third CloudFormation template that provisions an IAM group.
+Members of this group can deploy CloudFormation stacks and run `make deploy`.
+
+**Template:** [`infra/ci/ci.cfn.yml`](https://github.com/mrled/hedgerules/blob/master/infra/ci/ci.cfn.yml)
+
+Deploy it with:
+
+```sh
+aws cloudformation deploy \
+  --region us-east-1 \
+  --template-file infra/ci/ci.cfn.yml \
+  --stack-name hedgerules-ci \
+  --capabilities CAPABILITY_NAMED_IAM
+```
+
+Then, create an IAM user, add it to the group, and generate its access keys.
+
+```sh
+# Create the user and add to the CI group
+aws iam create-user --user-name hedgerules-ci | cat
+aws iam add-user-to-group \
+  --user-name hedgerules-ci \
+  --group-name hedgerules-ci-ci
+
+# Generate access keys
+aws iam create-access-key --user-name hedgerules-ci
+```
+
+Note that these access keys are shown only once.
+
+Add the `AccessKeyId` and `SecretAccessKey` from the output as repository secrets
+`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` in your GitHub Actions settings.
+
