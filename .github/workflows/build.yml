@@ -1,0 +1,47 @@
+name: Build Go Binary
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "hedgerules/**"
+  pull_request:
+    branches: [master]
+    paths:
+      - "hedgerules/**"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: hedgerules/go.mod
+
+      - name: Format check
+        run: |
+          cd hedgerules
+          test -z "$(gofmt -l .)" || { gofmt -l . && exit 1; }
+
+      - name: Vet
+        run: cd hedgerules && go vet ./...
+
+      - name: Test
+        run: cd hedgerules && go test ./...
+
+      - name: Build
+        run: |
+          mkdir -p bin
+          cd hedgerules && go build -o $(pwd)/../bin/hedgerules ./cmd/hedgerules
+
+      - name: Upload binary
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: hedgerules
+          path: bin/hedgerules
