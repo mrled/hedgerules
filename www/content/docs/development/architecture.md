@@ -530,7 +530,7 @@ The CloudFormation template in the example manages the Distribution, S3 buckets,
 
 ## Updates 20260208
 
-The following changes were decided in the [Design Decisions]({{< relref "decisions" >}}) doc. Each item needs to be reflected across the codebase (Go code, JS functions, Hugo theme, docs, and tests).
+The following changes were decided on 2026-02-08. Each item needs to be reflected across the codebase (Go code, JS functions, Hugo theme, docs, and tests).
 
 ### Terminology rename
 

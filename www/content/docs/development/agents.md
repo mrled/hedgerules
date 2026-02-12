@@ -19,7 +19,7 @@ Infrastructure lives in `infra/` and an example deployment lives in `examples/mi
 
 ## Key design decisions
 
-Before making changes, read [Design Decisions]({{< relref "decisions" >}}). The project follows a minimalist philosophy:
+Before making changes, read [Architecture]({{< relref "architecture" >}}). The project follows a minimalist philosophy:
 
 - No features without clear justification for maintenance cost.
 - stdlib over third-party libraries where reasonable (`flag` over cobra, no logging framework).
