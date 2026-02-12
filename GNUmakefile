@@ -79,6 +79,7 @@ $(CFN_DIST)/distribution.outputs.json: BUCKET = $(shell jq -r '.ContentBucketNam
 $(CFN_DIST)/distribution.outputs.json: BUCKET_DOMAIN = $(shell jq -r '.ContentBucketRegionalDomainName' $(CFN_DIST)/base.outputs.json)
 $(CFN_DIST)/distribution.outputs.json: OAC_ID = $(shell jq -r '.OriginAccessControlId' $(CFN_DIST)/base.outputs.json)
 $(CFN_DIST)/distribution.outputs.json: CERT_ARN = $(shell jq -r '.CertificateArn' $(CFN_DIST)/base.outputs.json)
+$(CFN_DIST)/distribution.outputs.json: LOGS_DOMAIN = $(shell jq -r '.LogsBucketDomainName' $(CFN_DIST)/base.outputs.json)
 $(CFN_DIST)/distribution.outputs.json: infra/prod/distribution.cfn.yml $(CFN_DIST)/base.outputs.json
 	aws cloudformation deploy \
 		--region $(CFN_REGION) \
@@ -90,6 +91,7 @@ $(CFN_DIST)/distribution.outputs.json: infra/prod/distribution.cfn.yml $(CFN_DIS
 			ContentBucketRegionalDomainName=$(BUCKET_DOMAIN) \
 			OriginAccessControlId=$(OAC_ID) \
 			CertificateArn=$(CERT_ARN) \
+			LogsBucketDomainName=$(LOGS_DOMAIN) \
 			RequestFunctionName=hedgerules-base-prod-viewer-request \
 			ResponseFunctionName=hedgerules-base-prod-viewer-response
 	aws cloudformation describe-stacks \

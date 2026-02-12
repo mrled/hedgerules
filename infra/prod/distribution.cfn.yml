@@ -37,6 +37,10 @@ Parameters:
     Type: String
     Description: Name of the viewer-response CloudFront Function (from hedgerules.toml functions.response-name)
 
+  LogsBucketDomainName:
+    Type: String
+    Description: Logs bucket domain name (from stage 1 LogsBucketDomainName output)
+
 Resources:
 
   ContentBucketPolicy:
@@ -101,6 +105,11 @@ Resources:
             ResponseCode: 404
             ResponsePagePath: /404.html
             ErrorCachingMinTTL: 300
+
+        Logging:
+          Bucket: !Ref LogsBucketDomainName
+          Prefix: !Sub "cloudfront/${Domain}/"
+          IncludeCookies: false
 
         PriceClass: PriceClass_100
 

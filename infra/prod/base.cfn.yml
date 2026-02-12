@@ -20,9 +20,43 @@ Parameters:
     Type: String
     Default: hedgerules-micahrl-com
 
+  LogsBucketName:
+    Type: String
+    Default: hedgerules-micahrl-com-logs
+
+  AthenaDatabaseName:
+    Type: String
+    Default: hedgerules_micahrl_com_logs
+    Description: Athena/Glue database name (lowercase only)
+    AllowedPattern: ^[a-z0-9_]+$
+    ConstraintDescription: Must contain only lowercase letters, numbers, and underscores
+
 Resources:
 
   # --- S3 ---
+
+  LogsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref LogsBucketName
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldLogs
+            Status: Enabled
+            ExpirationInDays: 365
+            Prefix: cloudfront/
+          - Id: DeleteOldAthenaResults
+            Status: Enabled
+            ExpirationInDays: 30
+            Prefix: athena-results/
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
 
   ContentBucket:
     Type: AWS::S3::Bucket
@@ -132,6 +166,81 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/*"
 
+  # --- Athena log analysis ---
+
+  AthenaWorkGroup:
+    Type: AWS::Athena::WorkGroup
+    Properties:
+      Name: !Sub "${AWS::StackName}-logs"
+      WorkGroupConfiguration:
+        ResultConfiguration:
+          OutputLocation: !Sub "s3://${LogsBucket}/athena-results/"
+        EnforceWorkGroupConfiguration: true
+        PublishCloudWatchMetricsEnabled: false
+
+  AthenaDatabase:
+    Type: AWS::Glue::Database
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseInput:
+        Name: !Ref AthenaDatabaseName
+        Description: CloudFront access logs database
+
+  AthenaLogsTable:
+    Type: AWS::Glue::Table
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseName: !Ref AthenaDatabase
+      TableInput:
+        Name: cloudfront_access_logs
+        TableType: EXTERNAL_TABLE
+        Parameters:
+          EXTERNAL: "TRUE"
+          skip.header.line.count: "2"
+        StorageDescriptor:
+          Columns:
+            - {Name: log_date, Type: string}
+            - {Name: log_time, Type: string}
+            - {Name: edge_location, Type: string}
+            - {Name: bytes_sent, Type: bigint}
+            - {Name: client_ip, Type: string}
+            - {Name: http_method, Type: string}
+            - {Name: host, Type: string}
+            - {Name: uri_stem, Type: string}
+            - {Name: status_code, Type: int}
+            - {Name: referer, Type: string}
+            - {Name: user_agent, Type: string}
+            - {Name: query_string, Type: string}
+            - {Name: cookie, Type: string}
+            - {Name: edge_result_type, Type: string}
+            - {Name: edge_request_id, Type: string}
+            - {Name: host_header, Type: string}
+            - {Name: protocol, Type: string}
+            - {Name: bytes_received, Type: bigint}
+            - {Name: time_taken, Type: float}
+            - {Name: forwarded_for, Type: string}
+            - {Name: ssl_protocol, Type: string}
+            - {Name: ssl_cipher, Type: string}
+            - {Name: edge_response_result_type, Type: string}
+            - {Name: protocol_version, Type: string}
+            - {Name: fle_status, Type: string}
+            - {Name: fle_encrypted_fields, Type: int}
+            - {Name: port, Type: int}
+            - {Name: time_to_first_byte, Type: float}
+            - {Name: edge_detailed_result_type, Type: string}
+            - {Name: content_type, Type: string}
+            - {Name: content_length, Type: bigint}
+            - {Name: range_start, Type: bigint}
+            - {Name: range_end, Type: bigint}
+          Location: !Sub "s3://${LogsBucket}/cloudfront/"
+          InputFormat: org.apache.hadoop.mapred.TextInputFormat
+          OutputFormat: org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat
+          SerdeInfo:
+            SerializationLibrary: org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe
+            Parameters:
+              field.delim: "\t"
+              serialization.format: "\t"
+
 Outputs:
   ContentBucketName:
     Value: !Ref ContentBucket
@@ -165,8 +274,20 @@ Outputs:
   HeadersKvsArn:
     Value: !GetAtt HeadersKvs.Arn
 
+  LogsBucketDomainName:
+    Description: Use as LogsBucketDomainName in the stage 4 stack
+    Value: !GetAtt LogsBucket.DomainName
+
   DeployerGroupName:
     Value: !Ref DeployerGroup
 
   DeployerGroupArn:
     Value: !GetAtt DeployerGroup.Arn
+
+  AthenaWorkGroupName:
+    Description: Athena workgroup for querying logs
+    Value: !Ref AthenaWorkGroup
+
+  AthenaDatabaseName:
+    Description: Athena database name
+    Value: !Ref AthenaDatabase
