@@ -21,6 +21,12 @@ title = "Hedgerules"
     [markup.goldmark.renderer]
       unsafe = true
 
+[menu]
+  [[menu.before]]
+    name = "GitHub"
+    url = "https://github.com/mrled/hedgerules"
+    weight = 20
+
 [params]
   description = "Hugo Edge Rules for CloudFront"
   BookSection = "docs"
