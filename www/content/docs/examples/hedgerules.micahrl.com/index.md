@@ -136,8 +136,13 @@ make hugo-build hedgerules-deploy hugo-deploy
 ## CI/CD
 
 Hedgerules uses GitHub actions to deploy the AWS infrastructure and the site content.
+
+### IAM setup
+
 To enable this, there is a third CloudFormation template that provisions an IAM group.
 Members of this group can deploy CloudFormation stacks and run `make deploy`.
+
+This stack is deployed once, manually.
 
 **Template:** [`infra/ci/ci.cfn.yml`](https://github.com/mrled/hedgerules/blob/master/infra/ci/ci.cfn.yml)
 
@@ -164,8 +169,18 @@ aws iam add-user-to-group \
 aws iam create-access-key --user-name hedgerules-ci
 ```
 
-Note that these access keys are shown only once.
+Note that these access keys are shown only once, so make sure to save them for the next step.
+
+### GitHub Actions
 
 Add the `AccessKeyId` and `SecretAccessKey` from the output as repository secrets
 `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` in your GitHub Actions settings.
 
+The workflow that deploys this site is found here:
+
+- [`.github/workflows/deploy.yml`](https://github.com/mrled/hedgerules/blob/master/.github/workflows/deploy.yml)
+
+It isn't related to deploying the site,
+but for completeness we can also link to the workflow that builds the Go binary and uploads it to GitHub releases:
+
+- [`.github/workflows/build.yml`](https://github.com/mrled/hedgerules/blob/master/.github/workflows/build.yml)
