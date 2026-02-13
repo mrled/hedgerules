@@ -147,7 +147,7 @@ type: passthru
     <td>None</td>
     <td>None</td>
   <tr>
-    <td><a href="/docs/headers/request-tokens">Request token</a> in headers</td>
+    <td><a href="/docs/headers/request-path-tokens">Request path token</a> in headers</td>
     <td><code>{/path}</code></td>
     <td>None</td>
     <td>None</td>
@@ -320,6 +320,20 @@ type: passthru
     <td>
       Not available<sup><a href="#firebase-no-waf">#</a></sup>
     </td>
+  </tr>
+  <tr>
+    <td>Build failure emails</td>
+    <td>Via <a href="https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/monitoring-workflows/notifications-for-workflow-runs">GitHub Actions notifications</a>, free</td>
+    <td>
+      <ul>
+        <li>Netlify deploy notifications require <a href="https://docs.netlify.com/monitor/alerts/">paid plan</a></li>
+        <li>use github actions to deploy and get notifications for free</li>
+      </ul>
+    </td>
+    <td>Via <a href="https://docs.aws.amazon.com/amplify/latest/userguide/notifications.html">SNS notifications</a>, free tier</td>
+    <td>No native build system, free if deployed with GitHub Actions</td>
+    <td>Via GitHub Actions notifications, free</td>
+    <td>Via GitHub Actions notifications, free</td>
   </tr>
   <tr>
     <td>Access logs</td>
