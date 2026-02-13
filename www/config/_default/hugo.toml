@@ -32,14 +32,17 @@ title = "Hedgerules"
   BookSection = "docs"
   BookToC = true
 
-  # Global headers applied to all paths via the root "/" pattern.
+  # Headers applied to paths via HedgerulesPathHeaders.
   # These are merged into _hedge_headers.json at build time.
   # Per-page headers (from frontmatter) override these for specific pages.
   [params.HedgerulesPathHeaders]
-    [params.HedgerulesPathHeaders."/"]
+    [params.HedgerulesPathHeaders."/favicon.svg"]
+      X-Hedgerules-Icon-About = "The icon is made of the characters 'h≡', in JetBrains Mono, size 56, color '#14532D'"
+    [params.HedgerulesPathHeaders."/favicon.png"]
+      X-Hedgerules-Icon-About = "The icon is made of the characters 'h≡', in JetBrains Mono, size 56, color '#14532D'"
+    [params.HedgerulesPathHeaders."*.xml"]
+      Content-Type = "application/xml; charset=utf-8"
       X-Content-Type-Options = "nosniff"
-      X-Frame-Options = "DENY"
-      Referrer-Policy = "strict-origin-when-cross-origin"
 
 # Hugo deploy target for S3
 # Run: hugo deploy --target mysite

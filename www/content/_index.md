@@ -1,6 +1,9 @@
 ---
 title: "Hedgerules"
 type: docs
+HedgerulesHeaders:
+  X-Hedgerules-Hello: "Nice to meet you"
+  X-Hedgerules-Local-Development-Path: "http://localhost:1313{/path}"
 ---
 
 Hugo Edge Rules for AWS CloudFront.

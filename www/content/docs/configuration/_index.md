@@ -30,16 +30,23 @@ If you're using the `hugo-theme-hedgerules` theme, the format definitions are pr
     notAlternative = true
 ```
 
-## Root headers
+## Path headers
 
 ```toml
 [params.HedgerulesPathHeaders]
-  [params.HedgerulesPathHeaders."/"]
+  [params.HedgerulesPathHeaders."/favicon.svg"]
+    X-Hedgerules-Icon-About = "The icon is made of the characters 'h≡', in JetBrains Mono, size 56, color '#14532D'"
+  [params.HedgerulesPathHeaders."/favicon.png"]
+    X-Hedgerules-Icon-About = "The icon is made of the characters 'h≡', in JetBrains Mono, size 56, color '#14532D'"
+  [params.HedgerulesPathHeaders."*.xml"]
+    Content-Type = "application/xml; charset=utf-8"
     X-Content-Type-Options = "nosniff"
-    X-Frame-Options = "DENY"
 ```
 
-The root `/` key defines global default headers applied to every response. Only `/` is supported as a key here; per-page headers are defined in frontmatter.
+You can set any path here,
+including specific files,
+directories (which would include all children),
+and wildcards.
 
 ## Per-page headers
 
@@ -53,7 +60,9 @@ HedgerulesHeaders:
 ---
 ```
 
-These are added to `_hedge_headers.json` keyed by the page's `RelPermalink`. They override root headers with the same name.
+These are added to `_hedge_headers.json` keyed by the page's `RelPermalink`.
+They override root headers with the same name.
+They apply to all child paths too.
 
 ## Custom redirects
 

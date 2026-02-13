@@ -3,6 +3,7 @@ title: "Getting Started"
 weight: 1
 aliases:
   - /guides/getting-started/
+  - /test/redirect-getting-started
 ---
 
 This guide walks you through deploying a Hugo site to AWS CloudFront using Hedgerules.

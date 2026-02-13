@@ -20,6 +20,8 @@ Configuration files:
 - [`hedgerules.toml`](https://github.com/mrled/hedgerules/blob/master/hedgerules.toml)
 - [`GNUmakefile`](https://github.com/mrled/hedgerules/blob/master/GNUmakefile)
 
+See [Demonstration]({{< relref "/docs/demonstration" >}}) for examples of Hedgerules features on this site.
+
 ## Prerequisites
 
 - AWS CLI configured with credentials for the site sub-account
