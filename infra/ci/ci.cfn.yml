@@ -110,6 +110,9 @@ Resources:
                   - athena:DeleteWorkGroup
                   - athena:GetWorkGroup
                   - athena:UpdateWorkGroup
+                  - athena:CreateNamedQuery
+                  - athena:DeleteNamedQuery
+                  - athena:GetNamedQuery
                   - glue:CreateDatabase
                   - glue:DeleteDatabase
                   - glue:GetDatabase
@@ -117,6 +120,13 @@ Resources:
                   - glue:DeleteTable
                   - glue:GetTable
                   - glue:UpdateTable
+                Resource: "*"
+              - Sid: AllowCloudWatchDashboards
+                Effect: Allow
+                Action:
+                  - cloudwatch:PutDashboard
+                  - cloudwatch:DeleteDashboards
+                  - cloudwatch:GetDashboard
                 Resource: "*"
 
         - PolicyName: DeployerGroupMembership
