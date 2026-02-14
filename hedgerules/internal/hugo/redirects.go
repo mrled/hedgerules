@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/micahrl/hedgerules/internal/kvs"
+	"github.com/micahrl/hedgerules/hedgerules/internal/kvs"
 )
 
 // ParseRedirects reads the _hedge_redirects.txt file and returns redirect entries.

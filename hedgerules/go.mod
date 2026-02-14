@@ -1,4 +1,4 @@
-module github.com/micahrl/hedgerules
+module github.com/micahrl/hedgerules/hedgerules
 
 go 1.21
 

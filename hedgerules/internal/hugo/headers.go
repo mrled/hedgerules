@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/micahrl/hedgerules/internal/kvs"
+	"github.com/micahrl/hedgerules/hedgerules/internal/kvs"
 )
 
 // ParseHeaders reads _hedge_headers.json and returns header entries.

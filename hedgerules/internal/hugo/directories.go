@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/micahrl/hedgerules/internal/kvs"
+	"github.com/micahrl/hedgerules/hedgerules/internal/kvs"
 )
 
 // ScanDirectories walks outputDir and returns index redirect entries.
