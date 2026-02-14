@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/micahrl/hedgerules/hedgerules/internal/kvs"
+	"github.com/mrled/hedgerules/hedgerules/internal/kvs"
 )
 
 func TestParseRedirects(t *testing.T) {

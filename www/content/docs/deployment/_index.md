@@ -161,7 +161,7 @@ When DNS is out of band, the two DNS-related items become manual steps:
 2. **Stage 4:** After CloudFormation creates the distribution,
    CNAME your domain to the `DistributionDomainName` output.
 
-The [`infra/prod/`](https://github.com/micahrl/hedgerules/tree/master/infra/prod)
+The [`infra/prod/`](https://github.com/mrled/hedgerules/tree/master/infra/prod)
 templates use this approach:
 they create the ACM certificate but expect DNS records to be managed externally.
 
@@ -189,7 +189,7 @@ aws cloudformation deploy \
 hugo deploy --target mysite
 ```
 
-See [`examples/micahrlweb/`](https://github.com/micahrl/hedgerules/tree/master/examples/micahrlweb) for a complete CloudFormation template.
+See [`examples/micahrlweb/`](https://github.com/mrled/hedgerules/tree/master/examples/micahrlweb) for a complete CloudFormation template.
 
 ## Each content update
 

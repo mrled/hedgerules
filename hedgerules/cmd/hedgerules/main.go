@@ -10,9 +10,9 @@ import (
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
 	"github.com/aws/aws-sdk-go-v2/service/cloudfrontkeyvaluestore"
-	"github.com/micahrl/hedgerules/hedgerules/internal/functions"
-	"github.com/micahrl/hedgerules/hedgerules/internal/hugo"
-	"github.com/micahrl/hedgerules/hedgerules/internal/kvs"
+	"github.com/mrled/hedgerules/hedgerules/internal/functions"
+	"github.com/mrled/hedgerules/hedgerules/internal/hugo"
+	"github.com/mrled/hedgerules/hedgerules/internal/kvs"
 )
 
 var version = "dev"
