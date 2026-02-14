@@ -113,6 +113,86 @@ Resources:
 
         PriceClass: PriceClass_100
 
+  CloudFrontDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub "${AWS::StackName}-cloudfront"
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["AWS/CloudFront", "Requests", "DistributionId", "${Distribution}", "Region", "Global"]
+                ],
+                "period": 300,
+                "stat": "Sum",
+                "region": "us-east-1",
+                "title": "Requests",
+                "view": "timeSeries"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["AWS/CloudFront", "4xxErrorRate", "DistributionId", "${Distribution}", "Region", "Global"],
+                  ["AWS/CloudFront", "5xxErrorRate", "DistributionId", "${Distribution}", "Region", "Global"]
+                ],
+                "period": 300,
+                "stat": "Average",
+                "region": "us-east-1",
+                "title": "Error Rates",
+                "view": "timeSeries",
+                "yAxis": { "left": { "min": 0 } }
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 6,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["AWS/CloudFront", "BytesDownloaded", "DistributionId", "${Distribution}", "Region", "Global"]
+                ],
+                "period": 300,
+                "stat": "Sum",
+                "region": "us-east-1",
+                "title": "Bytes Downloaded",
+                "view": "timeSeries"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12,
+              "y": 6,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["AWS/CloudFront", "TotalErrorRate", "DistributionId", "${Distribution}", "Region", "Global"]
+                ],
+                "period": 300,
+                "stat": "Average",
+                "region": "us-east-1",
+                "title": "Total Error Rate",
+                "view": "singleValue"
+              }
+            }
+          ]
+        }
+
 Outputs:
   DistributionId:
     Description: Use in hugo.toml as deployment.targets.cloudFrontDistributionID
@@ -124,3 +204,7 @@ Outputs:
 
   WebsiteURL:
     Value: !Sub "https://${Domain}"
+
+  DashboardName:
+    Description: CloudWatch dashboard for CloudFront metrics
+    Value: !Sub "${AWS::StackName}-cloudfront"

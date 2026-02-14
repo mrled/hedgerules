@@ -241,6 +241,115 @@ Resources:
               field.delim: "\t"
               serialization.format: "\t"
 
+  # --- Athena Named Queries ---
+
+  PopularPagesQuery:
+    Type: AWS::Athena::NamedQuery
+    Properties:
+      Name: !Sub "${AWS::StackName}-popular-pages"
+      Description: Top 25 pages by request count
+      WorkGroup: !Ref AthenaWorkGroup
+      Database: !Ref AthenaDatabase
+      QueryString: !Sub |
+        SELECT uri_stem, COUNT(*) as requests
+        FROM ${AthenaDatabaseName}.cloudfront_access_logs
+        GROUP BY uri_stem
+        ORDER BY requests DESC
+        LIMIT 25
+
+  ErrorAnalysisQuery:
+    Type: AWS::Athena::NamedQuery
+    Properties:
+      Name: !Sub "${AWS::StackName}-error-analysis"
+      Description: Requests grouped by status code
+      WorkGroup: !Ref AthenaWorkGroup
+      Database: !Ref AthenaDatabase
+      QueryString: !Sub |
+        SELECT status_code, COUNT(*) as requests
+        FROM ${AthenaDatabaseName}.cloudfront_access_logs
+        GROUP BY status_code
+        ORDER BY requests DESC
+
+  NotFoundQuery:
+    Type: AWS::Athena::NamedQuery
+    Properties:
+      Name: !Sub "${AWS::StackName}-not-found"
+      Description: Top 404 paths
+      WorkGroup: !Ref AthenaWorkGroup
+      Database: !Ref AthenaDatabase
+      QueryString: !Sub |
+        SELECT uri_stem, COUNT(*) as count
+        FROM ${AthenaDatabaseName}.cloudfront_access_logs
+        WHERE status_code = 404
+        GROUP BY uri_stem
+        ORDER BY count DESC
+        LIMIT 25
+
+  AiCrawlerQuery:
+    Type: AWS::Athena::NamedQuery
+    Properties:
+      Name: !Sub "${AWS::StackName}-ai-crawlers"
+      Description: AI bot traffic (GPTBot, ClaudeBot, ByteSpider, etc.)
+      WorkGroup: !Ref AthenaWorkGroup
+      Database: !Ref AthenaDatabase
+      QueryString: !Sub |
+        SELECT url_decode(user_agent) as user_agent,
+               COUNT(*) as requests, COUNT(DISTINCT client_ip) as unique_ips
+        FROM ${AthenaDatabaseName}.cloudfront_access_logs
+        WHERE LOWER(url_decode(user_agent)) LIKE '%gptbot%'
+           OR LOWER(url_decode(user_agent)) LIKE '%claudebot%'
+           OR LOWER(url_decode(user_agent)) LIKE '%bytespider%'
+           OR LOWER(url_decode(user_agent)) LIKE '%ccbot%'
+           OR LOWER(url_decode(user_agent)) LIKE '%perplexitybot%'
+           OR LOWER(url_decode(user_agent)) LIKE '%amazonbot%'
+           OR LOWER(url_decode(user_agent)) LIKE '%google-extended%'
+        GROUP BY user_agent
+        ORDER BY requests DESC
+
+  TrafficPerDayQuery:
+    Type: AWS::Athena::NamedQuery
+    Properties:
+      Name: !Sub "${AWS::StackName}-traffic-per-day"
+      Description: Daily request counts
+      WorkGroup: !Ref AthenaWorkGroup
+      Database: !Ref AthenaDatabase
+      QueryString: !Sub |
+        SELECT log_date, COUNT(*) as requests
+        FROM ${AthenaDatabaseName}.cloudfront_access_logs
+        GROUP BY log_date
+        ORDER BY log_date DESC
+
+  CacheHitRateQuery:
+    Type: AWS::Athena::NamedQuery
+    Properties:
+      Name: !Sub "${AWS::StackName}-cache-hit-rate"
+      Description: Cache hit percentage by day
+      WorkGroup: !Ref AthenaWorkGroup
+      Database: !Ref AthenaDatabase
+      QueryString: !Sub |
+        SELECT log_date,
+               COUNT(*) as total,
+               SUM(CASE WHEN edge_result_type = 'Hit' THEN 1 ELSE 0 END) as hits,
+               ROUND(100.0 * SUM(CASE WHEN edge_result_type = 'Hit' THEN 1 ELSE 0 END) / COUNT(*), 1) as hit_pct
+        FROM ${AthenaDatabaseName}.cloudfront_access_logs
+        GROUP BY log_date
+        ORDER BY log_date DESC
+
+  TopReferrersQuery:
+    Type: AWS::Athena::NamedQuery
+    Properties:
+      Name: !Sub "${AWS::StackName}-top-referrers"
+      Description: Top referrers (where traffic comes from)
+      WorkGroup: !Ref AthenaWorkGroup
+      Database: !Ref AthenaDatabase
+      QueryString: !Sub |
+        SELECT url_decode(referer) as referer, COUNT(*) as requests
+        FROM ${AthenaDatabaseName}.cloudfront_access_logs
+        WHERE referer != '-'
+        GROUP BY referer
+        ORDER BY requests DESC
+        LIMIT 25
+
 Outputs:
   ContentBucketName:
     Value: !Ref ContentBucket
@@ -291,3 +400,24 @@ Outputs:
   AthenaDatabaseName:
     Description: Athena database name
     Value: !Ref AthenaDatabase
+
+  PopularPagesQueryId:
+    Value: !Ref PopularPagesQuery
+
+  ErrorAnalysisQueryId:
+    Value: !Ref ErrorAnalysisQuery
+
+  NotFoundQueryId:
+    Value: !Ref NotFoundQuery
+
+  AiCrawlerQueryId:
+    Value: !Ref AiCrawlerQuery
+
+  TrafficPerDayQueryId:
+    Value: !Ref TrafficPerDayQuery
+
+  CacheHitRateQueryId:
+    Value: !Ref CacheHitRateQuery
+
+  TopReferrersQueryId:
+    Value: !Ref TopReferrersQuery
