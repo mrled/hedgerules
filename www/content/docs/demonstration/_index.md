@@ -77,6 +77,17 @@ curl -LI https://hedgerules.micahrl.com/test/redirect-getting-started
 # HTTP/2 200
 ```
 
+## Per-page path redirects
+
+Pages can define redirects to their children using `HedgerulesPathRedirects` frontmatter.
+The [Redirects]({{< relref "/docs/redirects" >}}) page defines a path redirect to its `alias-example` child:
+
+```sh
+curl -LI https://hedgerules.micahrl.com/test/redirect-alias-example
+# HTTP/2 301 (redirect to /docs/redirects/alias-example/)
+# HTTP/2 200
+```
+
 ## Index rewrites
 
 Index rewrites are automatically generated from the build output:

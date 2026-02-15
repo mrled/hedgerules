@@ -72,7 +72,26 @@ They apply to all child paths too.
   "/legacy/url" = "/current/url/"
 ```
 
-These are written to `_hedge_redirects.txt` alongside Hugo alias redirects.
+Site-wide redirects written to `_hedge_redirects.txt` before Hugo alias and per-page redirects.
+
+## Per-page path redirects
+
+In page frontmatter:
+
+```yaml
+---
+HedgerulesPathRedirects:
+  - from: /shortlink
+    to: child-file.pdf
+  - from: /other
+    to: /absolute/path/
+---
+```
+
+Each entry creates a redirect from `from` to a destination derived from `to`.
+If `to` starts with `/`, it is used as an absolute path.
+Otherwise, it is prefixed with the page's `RelPermalink`.
+This is useful for creating redirects to files without frontmatter (images, PDFs, etc.).
 
 ## Hugo deploy target
 
