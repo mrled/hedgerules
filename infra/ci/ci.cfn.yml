@@ -90,6 +90,7 @@ Resources:
                   - cloudfront:DeleteKeyValueStore
                   - cloudfront:DescribeKeyValueStore
                   - cloudfront:ListKeyValueStores
+                  - cloudfront:ListTagsForResource
                 Resource: "*"
               - Sid: AllowIAMGroupManagement
                 Effect: Allow
@@ -101,6 +102,7 @@ Resources:
                   - iam:DeleteGroupPolicy
                   - iam:GetGroupPolicy
                   - iam:ListGroupPolicies
+                  - iam:ListAttachedGroupPolicies
                 Resource:
                   - !Sub "arn:aws:iam::${AWS::AccountId}:group/${BaseStackName}-*"
               - Sid: AllowAthenaGlueManagement
