@@ -5,7 +5,7 @@ Each line: /source /destination
 
 Sources:
 1. Hugo aliases from page frontmatter (generated automatically)
-2. Custom redirects defined in params.redirects (if any)
+2. Custom redirects defined in params.HedgerulesRedirects (if any)
 
 Hugo aliases are the primary source of redirects.
 Directory index redirects (/path -> /path/) are NOT included here;
@@ -21,6 +21,6 @@ Hedgerules generates those by scanning the build output.
   {{- end -}}
 {{- end }}
 # Custom redirects
-{{ range $source, $dest := .Site.Params.redirects -}}
+{{ range $source, $dest := .Site.Params.HedgerulesRedirects -}}
 {{ $source }} {{ $dest }}
 {{ end -}}

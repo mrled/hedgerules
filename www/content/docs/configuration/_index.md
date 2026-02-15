@@ -67,7 +67,7 @@ They apply to all child paths too.
 ## Custom redirects
 
 ```toml
-[params.redirects]
+[params.HedgerulesRedirects]
   "/old" = "/new/"
   "/legacy/url" = "/current/url/"
 ```
