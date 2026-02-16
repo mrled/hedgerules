@@ -5,6 +5,31 @@ weight: 55
 
 The `hugo-theme-hedgerules` Hugo theme provides output format layouts, data partials, and table partials for working with Hedgerules headers and redirects.
 
+## Installation
+
+Add the theme to your Hugo site as a module. In your `hugo.toml`:
+
+```toml
+[module]
+  [module.hugoVersion]
+    min = "0.128.0"
+  [[module.imports]]
+    path = "github.com/mrled/hedgerules/hugo-theme-hedgerules"
+
+# Enable Hedgerules output formats on the home page
+[outputs]
+  home = ["HTML", "hedgeheaders", "hedgeredirects"]
+```
+
+Initialize Hugo modules if you haven't already:
+
+```sh
+hugo mod init github.com/yourname/yoursite
+hugo mod get github.com/mrled/hedgerules/hugo-theme-hedgerules
+```
+
+The theme automatically defines the `hedgeheaders` and `hedgeredirects` output formats, so you just need to enable them in your `[outputs]` configuration.
+
 ## Output format layouts
 
 These templates generate the files that `hedgerules deploy` reads.
