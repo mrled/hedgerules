@@ -17,7 +17,7 @@ This guide walks you through deploying a Hugo site to AWS CloudFront using Hedge
 ## 1. Install Hedgerules
 
 ```sh
-go install github.com/yourorg/hedgerules@latest
+go install github.com/mrled/hedgerules/hedgerules/cmd/hedgerules@latest
 ```
 
 ## 2. Add the _hedge_headers.json template
