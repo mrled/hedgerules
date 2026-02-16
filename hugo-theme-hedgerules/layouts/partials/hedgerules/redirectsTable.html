@@ -1,0 +1,12 @@
+{{- /* Render an HTML table of all redirects. */ -}}
+{{- $redirects := partial "hedgerules/redirects.html" . -}}
+<table>
+  <thead>
+    <tr><th>Source</th><th>Destination</th></tr>
+  </thead>
+  <tbody>
+    {{- range $source, $dest := $redirects }}
+    <tr><td>{{ $source }}</td><td>{{ $dest }}</td></tr>
+    {{- end }}
+  </tbody>
+</table>

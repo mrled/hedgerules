@@ -1,0 +1,40 @@
+{{- /* Return a map of all redirects (source -> destination).
+ *
+ * Sources (in this order):
+ * 1. Site-wide custom redirects from params.HedgerulesRedirects
+ * 2. Hugo aliases from page frontmatter
+ * 3. Per-page path redirects from HedgerulesPathRedirects frontmatter
+ *
+ * We use scratch instead of dict+merge because scratch mutates in place,
+ * avoiding the repeated allocations that merge requires (it returns a new
+ * dict every time).
+ *
+ * The result is cached on hugo.Store so it is only computed once per build.
+ */ -}}
+
+{{- $s := hugo.Store -}}
+{{- if not ($s.Get "hedgerules_redirects") -}}
+  {{- $m := newScratch -}}
+
+  {{- range $source, $dest := site.Params.HedgerulesRedirects -}}
+    {{- $m.Set $source $dest -}}
+  {{- end -}}
+
+  {{- range $p := site.AllPages -}}
+    {{- range $a := $p.Aliases -}}
+      {{- $m.Set $a $p.RelPermalink -}}
+    {{- end -}}
+    {{- range $r := $p.Params.HedgerulesPathRedirects -}}
+      {{- $to := $r.to -}}
+      {{- if hasPrefix $to "/" -}}
+        {{- $m.Set $r.from $to -}}
+      {{- else -}}
+        {{- $m.Set $r.from (printf "%s%s" $p.RelPermalink $to) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{- $s.Set "hedgerules_redirects" ($m.Values) -}}
+{{- end -}}
+
+{{- return ($s.Get "hedgerules_redirects") -}}

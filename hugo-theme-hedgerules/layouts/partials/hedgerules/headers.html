@@ -1,0 +1,42 @@
+{{- /* Return a map of all headers (path -> {header: value, ...}).
+ *
+ * Sources (merged in this order, later wins):
+ * 1. params.HedgerulesPathHeaders from hugo.toml
+ * 2. HedgerulesHeaders from page frontmatter
+ *
+ * We use scratch instead of dict+merge because scratch mutates in place,
+ * avoiding the repeated allocations that merge requires (it returns a new
+ * dict every time).
+ *
+ * The result is cached on hugo.Store so it is only computed once per build.
+ */ -}}
+
+{{- $s := hugo.Store -}}
+{{- if not ($s.Get "hedgerules_headers") -}}
+  {{- $m := newScratch -}}
+
+  {{- range $path, $headerDict := site.Params.HedgerulesPathHeaders -}}
+    {{- $existing := $m.Get $path -}}
+    {{- if $existing -}}
+      {{- $m.Set $path (merge $existing $headerDict) -}}
+    {{- else -}}
+      {{- $m.Set $path $headerDict -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{- range $p := site.Pages -}}
+    {{- if $p.Params.HedgerulesHeaders -}}
+      {{- $path := $p.RelPermalink -}}
+      {{- $existing := $m.Get $path -}}
+      {{- if $existing -}}
+        {{- $m.Set $path (merge $existing $p.Params.HedgerulesHeaders) -}}
+      {{- else -}}
+        {{- $m.Set $path $p.Params.HedgerulesHeaders -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{- $s.Set "hedgerules_headers" ($m.Values) -}}
+{{- end -}}
+
+{{- return ($s.Get "hedgerules_headers") -}}

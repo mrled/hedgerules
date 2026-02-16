@@ -1,0 +1,14 @@
+{{- /* Render an HTML table of all headers. */ -}}
+{{- $headers := partial "hedgerules/headers.html" . -}}
+<table>
+  <thead>
+    <tr><th>Path</th><th>Header</th><th>Value</th></tr>
+  </thead>
+  <tbody>
+    {{- range $path, $headerDict := $headers -}}
+      {{- range $name, $value := $headerDict }}
+    <tr><td>{{ $path }}</td><td>{{ $name }}</td><td>{{ $value }}</td></tr>
+      {{- end -}}
+    {{- end }}
+  </tbody>
+</table>
