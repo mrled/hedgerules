@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    tags: ["v*"]
+    tags: ["hedgerules/v*"]
 
 permissions:
   contents: write
@@ -32,6 +32,14 @@ jobs:
         with:
           go-version-file: hedgerules/go.mod
 
+      - name: Extract version
+        id: version
+        run: |
+          # Strip 'hedgerules/' prefix from tag to get version
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#hedgerules/}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Build
         env:
           GOOS: ${{ matrix.goos }}
@@ -40,7 +48,7 @@ jobs:
           cd hedgerules
           ext=""
           if [ "$GOOS" = "windows" ]; then ext=".exe"; fi
-          go build -ldflags "-X main.version=${{ github.ref_name }}" \
+          go build -ldflags "-X main.version=${{ steps.version.outputs.version }}" \
             -o "../hedgerules-${GOOS}-${GOARCH}${ext}" ./cmd/hedgerules
 
       - uses: actions/upload-artifact@v4
