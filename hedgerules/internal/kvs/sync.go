@@ -76,12 +76,18 @@ func FetchExistingKeys(ctx context.Context, client KVSClient, kvsARN string) (ma
 	return existing, etag, nil
 }
 
+// maxKeysPerBatch is the AWS CloudFront KVS limit for UpdateKeys API.
+// See: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html
+const maxKeysPerBatch = 50
+
 // Sync applies a SyncPlan to a CloudFront KVS using the batch UpdateKeys API.
+// Large operations are automatically split into multiple batches to respect AWS limits.
 func Sync(ctx context.Context, client KVSClient, kvsARN string, etag string, plan *SyncPlan) error {
 	if len(plan.Puts) == 0 && len(plan.Deletes) == 0 {
 		return nil
 	}
 
+	// Convert entries to API types
 	var puts []cfkvstypes.PutKeyRequestListItem
 	for _, e := range plan.Puts {
 		key := e.Key
@@ -100,14 +106,49 @@ func Sync(ctx context.Context, client KVSClient, kvsARN string, etag string, pla
 		})
 	}
 
-	_, err := client.UpdateKeys(ctx, &cloudfrontkeyvaluestore.UpdateKeysInput{
-		KvsARN:  &kvsARN,
-		IfMatch: &etag,
-		Puts:    puts,
-		Deletes: deletes,
-	})
-	if err != nil {
-		return fmt.Errorf("updating KVS keys: %w", err)
+	// Process operations in batches
+	currentETag := etag
+	putsIdx := 0
+	deletesIdx := 0
+
+	for putsIdx < len(puts) || deletesIdx < len(deletes) {
+		// Determine batch size for this iteration
+		remainingPuts := len(puts) - putsIdx
+		remainingDeletes := len(deletes) - deletesIdx
+		remaining := remainingPuts + remainingDeletes
+
+		batchSize := min(maxKeysPerBatch, remaining)
+
+		// Allocate batch operations
+		batchPuts := make([]cfkvstypes.PutKeyRequestListItem, 0, batchSize)
+		batchDeletes := make([]cfkvstypes.DeleteKeyRequestListItem, 0, batchSize)
+
+		// Fill batch with puts first, then deletes
+		for len(batchPuts)+len(batchDeletes) < batchSize && putsIdx < len(puts) {
+			batchPuts = append(batchPuts, puts[putsIdx])
+			putsIdx++
+		}
+		for len(batchPuts)+len(batchDeletes) < batchSize && deletesIdx < len(deletes) {
+			batchDeletes = append(batchDeletes, deletes[deletesIdx])
+			deletesIdx++
+		}
+
+		// Execute batch
+		resp, err := client.UpdateKeys(ctx, &cloudfrontkeyvaluestore.UpdateKeysInput{
+			KvsARN:  &kvsARN,
+			IfMatch: &currentETag,
+			Puts:    batchPuts,
+			Deletes: batchDeletes,
+		})
+		if err != nil {
+			return fmt.Errorf("updating KVS keys (batch %d/%d puts, %d deletes): %w",
+				putsIdx, len(puts), deletesIdx, err)
+		}
+
+		// Update ETag for next batch
+		if resp.ETag != nil {
+			currentETag = *resp.ETag
+		}
 	}
 
 	return nil
