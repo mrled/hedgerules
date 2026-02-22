@@ -18,22 +18,13 @@ import (
 var version = "dev"
 
 type config struct {
-	OutputDir string `toml:"output-dir"`
-	Region    string `toml:"region"`
-
-	Redirects kvsConfig       `toml:"redirects"`
-	Headers   kvsConfig       `toml:"headers"`
-	Functions functionsConfig `toml:"functions"`
-}
-
-type kvsConfig struct {
-	KVSName string `toml:"kvs-name"`
-}
-
-type functionsConfig struct {
-	RequestName  string `toml:"request-name"`
-	ResponseName string `toml:"response-name"`
-	DebugHeaders bool   `toml:"debug-headers"`
+	OutputDir          string `toml:"output-dir"`
+	Region             string `toml:"region"`
+	RedirectsKVSName   string `toml:"redirects-kvs-name"`
+	HeadersKVSName     string `toml:"headers-kvs-name"`
+	ViewerRequestName  string `toml:"viewer-request-name"`
+	ViewerResponseName string `toml:"viewer-response-name"`
+	DebugHeaders       bool   `toml:"debug-headers"`
 }
 
 func main() {
@@ -78,22 +69,22 @@ func runDeploy(args []string) {
 		cfg.OutputDir = *outputDir
 	}
 	if *redirectsKVS != "" {
-		cfg.Redirects.KVSName = *redirectsKVS
+		cfg.RedirectsKVSName = *redirectsKVS
 	}
 	if *headersKVS != "" {
-		cfg.Headers.KVSName = *headersKVS
+		cfg.HeadersKVSName = *headersKVS
 	}
 	if *requestFunc != "" {
-		cfg.Functions.RequestName = *requestFunc
+		cfg.ViewerRequestName = *requestFunc
 	}
 	if *responseFunc != "" {
-		cfg.Functions.ResponseName = *responseFunc
+		cfg.ViewerResponseName = *responseFunc
 	}
 	if *region != "" {
 		cfg.Region = *region
 	}
 	if *debugHeaders {
-		cfg.Functions.DebugHeaders = true
+		cfg.DebugHeaders = true
 	}
 
 	// Validate required config
@@ -101,16 +92,16 @@ func runDeploy(args []string) {
 		fatal("output-dir is required (set in config file or via --output-dir)")
 	}
 	if !*dryRun {
-		if cfg.Redirects.KVSName == "" {
+		if cfg.RedirectsKVSName == "" {
 			fatal("redirects-kvs-name is required (set in config file or via --redirects-kvs-name)")
 		}
-		if cfg.Headers.KVSName == "" {
+		if cfg.HeadersKVSName == "" {
 			fatal("headers-kvs-name is required (set in config file or via --headers-kvs-name)")
 		}
-		if cfg.Functions.RequestName == "" {
+		if cfg.ViewerRequestName == "" {
 			fatal("request-function-name is required (set in config file or via --request-function-name)")
 		}
-		if cfg.Functions.ResponseName == "" {
+		if cfg.ViewerResponseName == "" {
 			fatal("response-function-name is required (set in config file or via --response-function-name)")
 		}
 	}
@@ -198,13 +189,13 @@ func runDeploy(args []string) {
 
 	// Step 5: Resolve KVS ARNs
 	fmt.Fprintf(os.Stderr, "Resolving KVS ARNs...\n")
-	redirectsARN, err := functions.ResolveKVSARN(ctx, cfClient, cfg.Redirects.KVSName)
+	redirectsARN, err := functions.ResolveKVSARN(ctx, cfClient, cfg.RedirectsKVSName)
 	if err != nil {
 		fatal("resolving redirects KVS: %v", err)
 	}
 	fmt.Fprintf(os.Stderr, "Redirects KVS: %s\n", redirectsARN)
 
-	headersARN, err := functions.ResolveKVSARN(ctx, cfClient, cfg.Headers.KVSName)
+	headersARN, err := functions.ResolveKVSARN(ctx, cfClient, cfg.HeadersKVSName)
 	if err != nil {
 		fatal("resolving headers KVS: %v", err)
 	}
@@ -237,13 +228,13 @@ func runDeploy(args []string) {
 	// Step 8: Deploy CloudFront Functions
 	fmt.Fprintf(os.Stderr, "Deploying viewer-request function...\n")
 	requestCode := functions.BuildFunctionCode(functions.ViewerRequestJS, functions.KVSIDFromARN(redirectsARN), false)
-	if err := functions.DeployFunction(ctx, cfClient, cfg.Functions.RequestName, requestCode, redirectsARN); err != nil {
+	if err := functions.DeployFunction(ctx, cfClient, cfg.ViewerRequestName, requestCode, redirectsARN); err != nil {
 		fatal("deploying viewer-request function: %v", err)
 	}
 
 	fmt.Fprintf(os.Stderr, "Deploying viewer-response function...\n")
-	responseCode := functions.BuildFunctionCode(functions.ViewerResponseJS, functions.KVSIDFromARN(headersARN), cfg.Functions.DebugHeaders)
-	if err := functions.DeployFunction(ctx, cfClient, cfg.Functions.ResponseName, responseCode, headersARN); err != nil {
+	responseCode := functions.BuildFunctionCode(functions.ViewerResponseJS, functions.KVSIDFromARN(headersARN), cfg.DebugHeaders)
+	if err := functions.DeployFunction(ctx, cfClient, cfg.ViewerResponseName, responseCode, headersARN); err != nil {
 		fatal("deploying viewer-response function: %v", err)
 	}
 
