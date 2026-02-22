@@ -1,5 +1,5 @@
 ---
-title: "Configuration Reference"
+title: "Theme Configuration Reference"
 weight: 60
 ---
 

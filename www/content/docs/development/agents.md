@@ -32,7 +32,7 @@ The documentation under `www/content/docs/` uses Hugo with YAML frontmatter. Key
 - Every section has an `_index.md` with a `title` and `weight` for ordering.
 - Per-page custom headers use `HedgerulesHeaders` in frontmatter (see [Custom Headers]({{< relref "/docs/headers" >}})).
 - Redirect aliases use Hugo's built-in `aliases` frontmatter (see [Redirects]({{< relref "/docs/redirects" >}})).
-- The [Configuration Reference]({{< relref "/docs/configuration" >}}) documents all `hugo.toml` options.
+- The [Configuration Reference]({{< relref "/docs/theme/configuration" >}}) documents all `hugo.toml` options.
 - The [Getting Started]({{< relref "/docs/guides/getting-started" >}}) guide is the main onboarding path.
 
 ## Go CLI conventions
