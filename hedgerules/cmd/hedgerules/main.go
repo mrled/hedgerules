@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
@@ -60,6 +61,21 @@ func runDeploy(args []string) {
 	region := fs.String("region", "", "AWS region override")
 	debugHeaders := fs.Bool("debug-headers", false, "inject debug headers into viewer-response function")
 	fs.Parse(args)
+
+	// Resolve @FILE syntax for string flags
+	mustResolve := func(v, flag string) string {
+		result, err := resolveAtFile(v)
+		if err != nil {
+			fatal("--%s: %v", flag, err)
+		}
+		return result
+	}
+	*outputDir = mustResolve(*outputDir, "output-dir")
+	*redirectsKVS = mustResolve(*redirectsKVS, "redirects-kvs-name")
+	*headersKVS = mustResolve(*headersKVS, "headers-kvs-name")
+	*requestFunc = mustResolve(*requestFunc, "request-function-name")
+	*responseFunc = mustResolve(*responseFunc, "response-function-name")
+	*region = mustResolve(*region, "region")
 
 	// Load config file
 	cfg := loadConfig(*configPath)
@@ -256,4 +272,16 @@ func loadConfig(path string) config {
 func fatal(format string, args ...any) {
 	fmt.Fprintf(os.Stderr, "error: "+format+"\n", args...)
 	os.Exit(1)
+}
+
+// resolveAtFile resolves @FILE syntax: if s starts with '@', reads and returns the trimmed file contents.
+func resolveAtFile(s string) (string, error) {
+	if !strings.HasPrefix(s, "@") {
+		return s, nil
+	}
+	data, err := os.ReadFile(s[1:])
+	if err != nil {
+		return "", fmt.Errorf("reading file %q: %w", s[1:], err)
+	}
+	return strings.TrimSpace(string(data)), nil
 }
