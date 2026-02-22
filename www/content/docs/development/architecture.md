@@ -80,6 +80,8 @@ Flags:
 | `--config` | No | Path to config file (default: `hedgerules.toml` in current directory) |
 | `--region` | No | AWS region override |
 
+String flags accept `@FILE` syntax: if the value starts with `@`, the rest is treated as a file path and the flag value is read from that file (whitespace trimmed). For example, `--region @/run/secrets/aws-region`.
+
 ### `hedgerules version`
 
 Print version and exit.
@@ -381,16 +383,11 @@ File: `hedgerules.toml` (in project root, next to Hugo config).
 # hedgerules.toml
 
 output-dir = "public/"
-
-[redirects]
-kvs-name = "mysite-redirects"
-
-[headers]
-kvs-name = "mysite-headers"
-
-[functions]
-request-name = "mysite-viewer-request"
-response-name = "mysite-viewer-response"
+region = "us-east-1"
+redirects-kvs-name = "mysite-redirects"
+headers-kvs-name = "mysite-headers"
+viewer-request-name = "mysite-viewer-request"
+viewer-response-name = "mysite-viewer-response"
 # debug-headers = false
 ```
 
@@ -410,22 +407,13 @@ Use `github.com/BurntSushi/toml`. It's the standard Go TOML library, lightweight
 // cmd/hedgerules/main.go
 
 type config struct {
-    OutputDir string `toml:"output-dir"`
-    Region    string `toml:"region"`
-
-    Redirects kvsConfig       `toml:"redirects"`
-    Headers   kvsConfig       `toml:"headers"`
-    Functions functionsConfig `toml:"functions"`
-}
-
-type kvsConfig struct {
-    KVSName string `toml:"kvs-name"`
-}
-
-type functionsConfig struct {
-    RequestName  string `toml:"request-name"`
-    ResponseName string `toml:"response-name"`
-    DebugHeaders bool   `toml:"debug-headers"`
+    OutputDir          string `toml:"output-dir"`
+    Region             string `toml:"region"`
+    RedirectsKVSName   string `toml:"redirects-kvs-name"`
+    HeadersKVSName     string `toml:"headers-kvs-name"`
+    ViewerRequestName  string `toml:"viewer-request-name"`
+    ViewerResponseName string `toml:"viewer-response-name"`
+    DebugHeaders       bool   `toml:"debug-headers"`
 }
 ```
 
