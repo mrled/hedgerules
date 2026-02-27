@@ -12,15 +12,15 @@ import (
 
 // throttleCodes are AWS error codes that indicate rate limiting or throttling.
 var throttleCodes = map[string]bool{
-	"Throttling":                            true,
-	"ThrottlingException":                   true,
-	"RequestThrottled":                      true,
-	"TooManyRequestsException":              true,
+	"Throttling":                             true,
+	"ThrottlingException":                    true,
+	"RequestThrottled":                       true,
+	"TooManyRequestsException":               true,
 	"ProvisionedThroughputExceededException": true,
-	"TransactionInProgressException":        true,
-	"RequestLimitExceeded":                  true,
-	"BandwidthLimitExceeded":                true,
-	"LimitExceededException":                true,
+	"TransactionInProgressException":         true,
+	"RequestLimitExceeded":                   true,
+	"BandwidthLimitExceeded":                 true,
+	"LimitExceededException":                 true,
 }
 
 // IsThrottle reports whether err is an AWS throttling or rate-limiting error.
