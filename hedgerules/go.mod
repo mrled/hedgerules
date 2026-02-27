@@ -7,6 +7,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.28.7
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.44.2
 	github.com/aws/aws-sdk-go-v2/service/cloudfrontkeyvaluestore v1.8.10
+	github.com/aws/smithy-go v1.22.1
 )
 
 require (
@@ -22,6 +23,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.24.8 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.28.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.3 // indirect
-	github.com/aws/smithy-go v1.22.1 // indirect
+	github.com/aws/smithy-go v1.22.1
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 )

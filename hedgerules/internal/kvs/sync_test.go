@@ -170,7 +170,7 @@ func TestSync_SmallPlan(t *testing.T) {
 		Deletes: []string{"/old"},
 	}
 
-	err := Sync(context.Background(), mock, "arn:test", "etag-0", plan)
+	err := Sync(context.Background(), mock, "arn:test", "etag-0", plan, 0)
 	if err != nil {
 		t.Fatalf("Sync failed: %v", err)
 	}
@@ -202,7 +202,7 @@ func TestSync_ExactlyMaxBatch(t *testing.T) {
 
 	plan := &SyncPlan{Puts: puts}
 
-	err := Sync(context.Background(), mock, "arn:test", "etag-0", plan)
+	err := Sync(context.Background(), mock, "arn:test", "etag-0", plan, 0)
 	if err != nil {
 		t.Fatalf("Sync failed: %v", err)
 	}
@@ -228,7 +228,7 @@ func TestSync_MultipleBatches(t *testing.T) {
 
 	plan := &SyncPlan{Puts: puts}
 
-	err := Sync(context.Background(), mock, "arn:test", "etag-0", plan)
+	err := Sync(context.Background(), mock, "arn:test", "etag-0", plan, 0)
 	if err != nil {
 		t.Fatalf("Sync failed: %v", err)
 	}
@@ -281,7 +281,7 @@ func TestSync_MixedPutsAndDeletes(t *testing.T) {
 		Deletes: deletes,
 	}
 
-	err := Sync(context.Background(), mock, "arn:test", "etag-0", plan)
+	err := Sync(context.Background(), mock, "arn:test", "etag-0", plan, 0)
 	if err != nil {
 		t.Fatalf("Sync failed: %v", err)
 	}
@@ -313,7 +313,7 @@ func TestSync_EmptyPlan(t *testing.T) {
 	mock := &mockKVSClient{nextETag: 0}
 	plan := &SyncPlan{}
 
-	err := Sync(context.Background(), mock, "arn:test", "etag-0", plan)
+	err := Sync(context.Background(), mock, "arn:test", "etag-0", plan, 0)
 	if err != nil {
 		t.Fatalf("Sync failed: %v", err)
 	}

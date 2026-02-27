@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudfrontkeyvaluestore"
 	cfkvstypes "github.com/aws/aws-sdk-go-v2/service/cloudfrontkeyvaluestore/types"
+	"github.com/mrled/hedgerules/hedgerules/internal/retry"
 )
 
 // KVSClient abstracts the CloudFront KeyValueStore API.
@@ -44,10 +45,15 @@ func ComputeSyncPlan(desired *Data, existingKeys map[string]string) *SyncPlan {
 }
 
 // FetchExistingKeys retrieves all current keys and values from a KVS.
-func FetchExistingKeys(ctx context.Context, client KVSClient, kvsARN string) (map[string]string, string, error) {
+func FetchExistingKeys(ctx context.Context, client KVSClient, kvsARN string, maxRetries int) (map[string]string, string, error) {
 	// Get ETag
-	desc, err := client.DescribeKeyValueStore(ctx, &cloudfrontkeyvaluestore.DescribeKeyValueStoreInput{
-		KvsARN: &kvsARN,
+	var desc *cloudfrontkeyvaluestore.DescribeKeyValueStoreOutput
+	err := retry.Do(maxRetries, func() error {
+		var e error
+		desc, e = client.DescribeKeyValueStore(ctx, &cloudfrontkeyvaluestore.DescribeKeyValueStoreInput{
+			KvsARN: &kvsARN,
+		})
+		return e
 	})
 	if err != nil {
 		return nil, "", fmt.Errorf("describing KVS: %w", err)
@@ -57,9 +63,14 @@ func FetchExistingKeys(ctx context.Context, client KVSClient, kvsARN string) (ma
 	existing := make(map[string]string)
 	var nextToken *string
 	for {
-		resp, err := client.ListKeys(ctx, &cloudfrontkeyvaluestore.ListKeysInput{
-			KvsARN:    &kvsARN,
-			NextToken: nextToken,
+		var resp *cloudfrontkeyvaluestore.ListKeysOutput
+		err := retry.Do(maxRetries, func() error {
+			var e error
+			resp, e = client.ListKeys(ctx, &cloudfrontkeyvaluestore.ListKeysInput{
+				KvsARN:    &kvsARN,
+				NextToken: nextToken,
+			})
+			return e
 		})
 		if err != nil {
 			return nil, "", fmt.Errorf("listing KVS keys: %w", err)
@@ -82,7 +93,7 @@ const maxKeysPerBatch = 50
 
 // Sync applies a SyncPlan to a CloudFront KVS using the batch UpdateKeys API.
 // Large operations are automatically split into multiple batches to respect AWS limits.
-func Sync(ctx context.Context, client KVSClient, kvsARN string, etag string, plan *SyncPlan) error {
+func Sync(ctx context.Context, client KVSClient, kvsARN string, etag string, plan *SyncPlan, maxRetries int) error {
 	if len(plan.Puts) == 0 && len(plan.Deletes) == 0 {
 		return nil
 	}
@@ -134,11 +145,16 @@ func Sync(ctx context.Context, client KVSClient, kvsARN string, etag string, pla
 		}
 
 		// Execute batch
-		resp, err := client.UpdateKeys(ctx, &cloudfrontkeyvaluestore.UpdateKeysInput{
-			KvsARN:  &kvsARN,
-			IfMatch: &currentETag,
-			Puts:    batchPuts,
-			Deletes: batchDeletes,
+		var resp *cloudfrontkeyvaluestore.UpdateKeysOutput
+		err := retry.Do(maxRetries, func() error {
+			var e error
+			resp, e = client.UpdateKeys(ctx, &cloudfrontkeyvaluestore.UpdateKeysInput{
+				KvsARN:  &kvsARN,
+				IfMatch: &currentETag,
+				Puts:    batchPuts,
+				Deletes: batchDeletes,
+			})
+			return e
 		})
 		if err != nil {
 			return fmt.Errorf("updating KVS keys (batch %d/%d puts, %d deletes): %w",

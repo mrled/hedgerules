@@ -18,6 +18,8 @@ import (
 
 var version = "dev"
 
+const defaultMaxRetries = 10
+
 type config struct {
 	OutputDir          string `toml:"output-dir"`
 	Region             string `toml:"region"`
@@ -26,6 +28,7 @@ type config struct {
 	ViewerRequestName  string `toml:"viewer-request-name"`
 	ViewerResponseName string `toml:"viewer-response-name"`
 	DebugHeaders       bool   `toml:"debug-headers"`
+	MaxRetries         int    `toml:"max-retries"`
 }
 
 func main() {
@@ -60,6 +63,7 @@ func runDeploy(args []string) {
 	dryRun := fs.Bool("dry-run", false, "parse and validate only, print plan")
 	region := fs.String("region", "", "AWS region override")
 	debugHeaders := fs.Bool("debug-headers", false, "inject debug headers into viewer-response function")
+	maxRetries := fs.Int("max-retries", -1, fmt.Sprintf("max AWS throttle retries (default %d, 0 disables retries)", defaultMaxRetries))
 	fs.Parse(args)
 
 	// Resolve @FILE syntax for string flags
@@ -101,6 +105,12 @@ func runDeploy(args []string) {
 	}
 	if *debugHeaders {
 		cfg.DebugHeaders = true
+	}
+	if *maxRetries >= 0 {
+		cfg.MaxRetries = *maxRetries
+	} else if cfg.MaxRetries == 0 {
+		// Neither flag nor config set: use default
+		cfg.MaxRetries = defaultMaxRetries
 	}
 
 	// Validate required config
@@ -205,13 +215,13 @@ func runDeploy(args []string) {
 
 	// Step 5: Resolve KVS ARNs
 	fmt.Fprintf(os.Stderr, "Resolving KVS ARNs...\n")
-	redirectsARN, err := functions.ResolveKVSARN(ctx, cfClient, cfg.RedirectsKVSName)
+	redirectsARN, err := functions.ResolveKVSARN(ctx, cfClient, cfg.RedirectsKVSName, cfg.MaxRetries)
 	if err != nil {
 		fatal("resolving redirects KVS: %v", err)
 	}
 	fmt.Fprintf(os.Stderr, "Redirects KVS: %s\n", redirectsARN)
 
-	headersARN, err := functions.ResolveKVSARN(ctx, cfClient, cfg.HeadersKVSName)
+	headersARN, err := functions.ResolveKVSARN(ctx, cfClient, cfg.HeadersKVSName, cfg.MaxRetries)
 	if err != nil {
 		fatal("resolving headers KVS: %v", err)
 	}
@@ -219,38 +229,38 @@ func runDeploy(args []string) {
 
 	// Step 6: Sync redirects KVS
 	fmt.Fprintf(os.Stderr, "Syncing redirects KVS...\n")
-	existingRedirects, redirectEtag, err := kvs.FetchExistingKeys(ctx, kvsClient, redirectsARN)
+	existingRedirects, redirectEtag, err := kvs.FetchExistingKeys(ctx, kvsClient, redirectsARN, cfg.MaxRetries)
 	if err != nil {
 		fatal("fetching existing redirects: %v", err)
 	}
 	redirectPlan := kvs.ComputeSyncPlan(redirectData, existingRedirects)
 	fmt.Fprintf(os.Stderr, "Redirects: %d puts, %d deletes\n", len(redirectPlan.Puts), len(redirectPlan.Deletes))
-	if err := kvs.Sync(ctx, kvsClient, redirectsARN, redirectEtag, redirectPlan); err != nil {
+	if err := kvs.Sync(ctx, kvsClient, redirectsARN, redirectEtag, redirectPlan, cfg.MaxRetries); err != nil {
 		fatal("syncing redirects: %v", err)
 	}
 
 	// Step 7: Sync headers KVS
 	fmt.Fprintf(os.Stderr, "Syncing headers KVS...\n")
-	existingHeaders, headerEtag, err := kvs.FetchExistingKeys(ctx, kvsClient, headersARN)
+	existingHeaders, headerEtag, err := kvs.FetchExistingKeys(ctx, kvsClient, headersARN, cfg.MaxRetries)
 	if err != nil {
 		fatal("fetching existing headers: %v", err)
 	}
 	headerPlan := kvs.ComputeSyncPlan(headerData, existingHeaders)
 	fmt.Fprintf(os.Stderr, "Headers: %d puts, %d deletes\n", len(headerPlan.Puts), len(headerPlan.Deletes))
-	if err := kvs.Sync(ctx, kvsClient, headersARN, headerEtag, headerPlan); err != nil {
+	if err := kvs.Sync(ctx, kvsClient, headersARN, headerEtag, headerPlan, cfg.MaxRetries); err != nil {
 		fatal("syncing headers: %v", err)
 	}
 
 	// Step 8: Deploy CloudFront Functions
 	fmt.Fprintf(os.Stderr, "Deploying viewer-request function...\n")
 	requestCode := functions.BuildFunctionCode(functions.ViewerRequestJS, functions.KVSIDFromARN(redirectsARN), false)
-	if err := functions.DeployFunction(ctx, cfClient, cfg.ViewerRequestName, requestCode, redirectsARN); err != nil {
+	if err := functions.DeployFunction(ctx, cfClient, cfg.ViewerRequestName, requestCode, redirectsARN, cfg.MaxRetries); err != nil {
 		fatal("deploying viewer-request function: %v", err)
 	}
 
 	fmt.Fprintf(os.Stderr, "Deploying viewer-response function...\n")
 	responseCode := functions.BuildFunctionCode(functions.ViewerResponseJS, functions.KVSIDFromARN(headersARN), cfg.DebugHeaders)
-	if err := functions.DeployFunction(ctx, cfClient, cfg.ViewerResponseName, responseCode, headersARN); err != nil {
+	if err := functions.DeployFunction(ctx, cfClient, cfg.ViewerResponseName, responseCode, headersARN, cfg.MaxRetries); err != nil {
 		fatal("deploying viewer-response function: %v", err)
 	}
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
 	cftypes "github.com/aws/aws-sdk-go-v2/service/cloudfront/types"
+	"github.com/mrled/hedgerules/hedgerules/internal/retry"
 )
 
 // KVSIDFromARN extracts the KVS ID (UUID) from a full KVS ARN.
@@ -33,11 +34,16 @@ type KVSARNResolver interface {
 }
 
 // ResolveKVSARN resolves a KVS name to its ARN by listing all KVS and matching by name.
-func ResolveKVSARN(ctx context.Context, client KVSARNResolver, kvsName string) (string, error) {
+func ResolveKVSARN(ctx context.Context, client KVSARNResolver, kvsName string, maxRetries int) (string, error) {
 	var marker *string
 	for {
-		resp, err := client.ListKeyValueStores(ctx, &cloudfront.ListKeyValueStoresInput{
-			Marker: marker,
+		var resp *cloudfront.ListKeyValueStoresOutput
+		err := retry.Do(maxRetries, func() error {
+			var e error
+			resp, e = client.ListKeyValueStores(ctx, &cloudfront.ListKeyValueStoresInput{
+				Marker: marker,
+			})
+			return e
 		})
 		if err != nil {
 			return "", fmt.Errorf("listing key value stores: %w", err)
@@ -61,7 +67,7 @@ func ResolveKVSARN(ctx context.Context, client KVSARNResolver, kvsName string) (
 
 // DeployFunction creates or updates a CloudFront Function with the given
 // JS source code and KVS association. It publishes the function to LIVE stage.
-func DeployFunction(ctx context.Context, client CFClient, name string, code []byte, kvsARN string) error {
+func DeployFunction(ctx context.Context, client CFClient, name string, code []byte, kvsARN string, maxRetries int) error {
 	runtime := cftypes.FunctionRuntimeCloudfrontJs20
 	kvAssoc := &cftypes.KeyValueStoreAssociations{
 		Quantity: int32Ptr(1),
@@ -72,9 +78,14 @@ func DeployFunction(ctx context.Context, client CFClient, name string, code []by
 
 	// Check if function already exists
 	var etag string
-	descResp, err := client.DescribeFunction(ctx, &cloudfront.DescribeFunctionInput{
-		Name:  &name,
-		Stage: cftypes.FunctionStageDevelopment,
+	var descResp *cloudfront.DescribeFunctionOutput
+	err := retry.Do(maxRetries, func() error {
+		var e error
+		descResp, e = client.DescribeFunction(ctx, &cloudfront.DescribeFunctionInput{
+			Name:  &name,
+			Stage: cftypes.FunctionStageDevelopment,
+		})
+		return e
 	})
 
 	var notFound *cftypes.NoSuchFunctionExists
@@ -85,15 +96,20 @@ func DeployFunction(ctx context.Context, client CFClient, name string, code []by
 	if descResp != nil && descResp.ETag != nil {
 		// Function exists, update it
 		etag = *descResp.ETag
-		updateResp, err := client.UpdateFunction(ctx, &cloudfront.UpdateFunctionInput{
-			Name:         &name,
-			IfMatch:      &etag,
-			FunctionCode: code,
-			FunctionConfig: &cftypes.FunctionConfig{
-				Comment:                   strPtr(fmt.Sprintf("Managed by hedgerules: %s", name)),
-				Runtime:                   runtime,
-				KeyValueStoreAssociations: kvAssoc,
-			},
+		var updateResp *cloudfront.UpdateFunctionOutput
+		err := retry.Do(maxRetries, func() error {
+			var e error
+			updateResp, e = client.UpdateFunction(ctx, &cloudfront.UpdateFunctionInput{
+				Name:         &name,
+				IfMatch:      &etag,
+				FunctionCode: code,
+				FunctionConfig: &cftypes.FunctionConfig{
+					Comment:                   strPtr(fmt.Sprintf("Managed by hedgerules: %s", name)),
+					Runtime:                   runtime,
+					KeyValueStoreAssociations: kvAssoc,
+				},
+			})
+			return e
 		})
 		if err != nil {
 			return fmt.Errorf("updating function %s: %w", name, err)
@@ -101,14 +117,19 @@ func DeployFunction(ctx context.Context, client CFClient, name string, code []by
 		etag = *updateResp.ETag
 	} else {
 		// Function doesn't exist, create it
-		createResp, err := client.CreateFunction(ctx, &cloudfront.CreateFunctionInput{
-			Name:         &name,
-			FunctionCode: code,
-			FunctionConfig: &cftypes.FunctionConfig{
-				Comment:                   strPtr(fmt.Sprintf("Managed by hedgerules: %s", name)),
-				Runtime:                   runtime,
-				KeyValueStoreAssociations: kvAssoc,
-			},
+		var createResp *cloudfront.CreateFunctionOutput
+		err := retry.Do(maxRetries, func() error {
+			var e error
+			createResp, e = client.CreateFunction(ctx, &cloudfront.CreateFunctionInput{
+				Name:         &name,
+				FunctionCode: code,
+				FunctionConfig: &cftypes.FunctionConfig{
+					Comment:                   strPtr(fmt.Sprintf("Managed by hedgerules: %s", name)),
+					Runtime:                   runtime,
+					KeyValueStoreAssociations: kvAssoc,
+				},
+			})
+			return e
 		})
 		if err != nil {
 			return fmt.Errorf("creating function %s: %w", name, err)
@@ -117,9 +138,13 @@ func DeployFunction(ctx context.Context, client CFClient, name string, code []by
 	}
 
 	// Publish to LIVE stage
-	_, err = client.PublishFunction(ctx, &cloudfront.PublishFunctionInput{
-		Name:    &name,
-		IfMatch: &etag,
+	err = retry.Do(maxRetries, func() error {
+		var e error
+		_, e = client.PublishFunction(ctx, &cloudfront.PublishFunctionInput{
+			Name:    &name,
+			IfMatch: &etag,
+		})
+		return e
 	})
 	if err != nil {
 		return fmt.Errorf("publishing function %s: %w", name, err)
