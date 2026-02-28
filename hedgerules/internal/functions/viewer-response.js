@@ -62,7 +62,10 @@ async function handler(event) {
             if (idx !== -1) {
               var name = line.substring(0, idx).trim().toLowerCase();
               var val = line.substring(idx + 1).trim();
-              val = val.replace('{/path}', path);
+              // For {/path}, use the user-facing path: undo the viewer-request
+              // rewrite that turns /test/ into /test/index.html for S3.
+              var userPath = path.endsWith('/index.html') ? path.slice(0, -'index.html'.length) : path;
+              val = val.replace('{/path}', userPath);
               if (name) {
                 var headerSize = name.length + val.length + 4;
                 if (totalAddedBytes + headerSize > headerSizeLimitBytes) {
