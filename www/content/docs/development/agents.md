@@ -41,7 +41,7 @@ The documentation under `www/content/docs/` uses Hugo with YAML frontmatter. Key
 - AWS SDK v2 for CloudFront and CloudFront KeyValueStore operations.
 - TOML config via `BurntSushi/toml` (Hugo users already know TOML).
 - Validate all data before making any AWS API calls. Collect all validation errors and report them together.
-- No retries on AWS errors -- re-running `hedgerules deploy` is safe because KVS sync is convergent.
+- Retry with exponential backoff on AWS throttle/rate-limit errors (up to `max-retries`, default 10). Exit immediately on all other AWS errors (permissions, not found, etc.).
 
 ## Running the site locally
 

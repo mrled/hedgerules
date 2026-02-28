@@ -19,6 +19,7 @@ headers-kvs-name = "mysite-headers"
 viewer-request-name = "mysite-viewer-request"
 viewer-response-name = "mysite-viewer-response"
 # debug-headers = false
+# max-retries = 10
 ```
 
 | Key | Description |
@@ -30,6 +31,7 @@ viewer-response-name = "mysite-viewer-response"
 | `viewer-request-name` | CloudFront Function name for viewer-request |
 | `viewer-response-name` | CloudFront Function name for viewer-response |
 | `debug-headers` | Inject debug headers into viewer-response (default `false`) |
+| `max-retries` | Max retries on AWS throttling errors (default `10`, `0` disables retries) |
 
 ## Command line flags
 
@@ -48,6 +50,7 @@ hedgerules deploy [flags]
 | `--request-function-name` | CloudFront Function name for viewer-request |
 | `--response-function-name` | CloudFront Function name for viewer-response |
 | `--debug-headers` | Inject debug headers into viewer-response |
+| `--max-retries` | Max retries on AWS throttling errors (default `10`, `0` disables retries) |
 | `--dry-run` | Parse and validate only; print plan without mutating AWS |
 | `--config` | Path to config file (default: `hedgerules.toml`) |
 

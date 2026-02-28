@@ -42,6 +42,7 @@ hedgerules/
 | `internal/hugo` | Parse Hugo build output: directories, `_hedge_redirects.txt`, `_hedge_headers.json`; merge redirects |
 | `internal/kvs` | KVS data types, validation against constraints, diff-and-sync to AWS |
 | `internal/functions` | Embed JS source files, inject variables (`kvsId`, `debugHeaders`), deploy to CloudFront Functions API |
+| `internal/retry` | AWS throttle detection (`IsThrottle`) and retry loop with exponential backoff (`Do`) |
 
 ---
 
@@ -191,13 +192,13 @@ func ComputeSyncPlan(desired *Data, existingKeys map[string]string) *SyncPlan
 
 // Sync applies a SyncPlan to a CloudFront KVS. Returns error on failure.
 // Uses UpdateKeys batch API for efficiency.
-func Sync(ctx context.Context, client KVSClient, kvsARN, etag string, plan *SyncPlan) error
+func Sync(ctx context.Context, client KVSClient, kvsARN, etag string, plan *SyncPlan, maxRetries int) error
 
 // internal/functions/deploy.go
 
 // DeployFunction creates or updates a CloudFront Function with the given
 // JS source code and KVS association. It publishes the function.
-func DeployFunction(ctx context.Context, client CFClient, name string, code []byte, kvsARN string) error
+func DeployFunction(ctx context.Context, client CFClient, name string, code []byte, kvsARN string, maxRetries int) error
 ```
 
 ### Interfaces for testability
@@ -414,6 +415,7 @@ type config struct {
     ViewerRequestName  string `toml:"viewer-request-name"`
     ViewerResponseName string `toml:"viewer-response-name"`
     DebugHeaders       bool   `toml:"debug-headers"`
+    MaxRetries         int    `toml:"max-retries"`
 }
 ```
 
@@ -445,9 +447,10 @@ if len(errs) > 0 {
 
 ### AWS API errors
 
-- **ETag conflicts**: If `UpdateKeys` fails with `ConflictException`, report that another process modified the KVS concurrently. Do not retry automatically - the user should re-run.
+- **Throttling / rate limiting**: Automatically retried with exponential backoff (1s, 2s, 4s… capped at 30s, with jitter). Up to `max-retries` attempts (default 10). Each retry prints a message to stderr. Detected by AWS error code via `internal/retry.IsThrottle`.
+- **ETag conflicts**: If `UpdateKeys` fails with `ConflictException`, returned immediately (not retried). The user should re-run — the sync is convergent.
 - **Not found**: If KVS name doesn't resolve, print a clear message suggesting the user check the name and that the KVS exists.
-- **Auth errors**: Let the AWS SDK error message pass through; don't wrap these excessively.
+- **Auth errors**: Returned immediately without retrying. Let the AWS SDK error message pass through; don't wrap these excessively.
 
 ### Logging
 
@@ -465,6 +468,7 @@ Use `fmt.Fprintf(os.Stderr, ...)` for status/progress messages and `fmt.Println(
 | `github.com/aws/aws-sdk-go-v2/config` | AWS SDK shared config loading |
 | `github.com/aws/aws-sdk-go-v2/service/cloudfront` | CloudFront Functions + KVS listing API |
 | `github.com/aws/aws-sdk-go-v2/service/cloudfrontkeyvaluestore` | CloudFront KVS data API |
+| `github.com/aws/smithy-go` | AWS error type interface for throttle detection |
 | `github.com/BurntSushi/toml` | TOML config file parsing |
 
 ### Standard library only (no external dep needed)
@@ -495,6 +499,7 @@ Require Go 1.21+ (for `slices`, `maps`, `slog` availability if needed later).
 | JS embedding | `go:embed` | No build step, compiled into binary |
 | Concurrency | Sequential | Simple, no parallel complexity |
 | Error strategy | Validate all first, fail fast | No partial deploys |
+| Throttle handling | Retry with exponential backoff | CloudFront rate limits are transient; convergent sync makes retries safe |
 | Logging | stderr/stdout, no framework | Minimal dependencies |
 
 ---
