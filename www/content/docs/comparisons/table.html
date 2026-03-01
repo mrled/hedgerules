@@ -336,7 +336,7 @@ type: passthru
     <td>Via GitHub Actions notifications, free</td>
   </tr>
   <tr>
-    <td>Access logs</td>
+    <td>Historical access log analysis</td>
     <td>
       AWS Athena, free<sup><a href="#athena-pricing">#</a></sup>,
       see <a href="{{< ref "/docs/addons/athena/" >}}">Athena access logs</a> docs.
@@ -361,6 +361,69 @@ type: passthru
     </td>
     <td>
       <a href="https://firebase.google.com/docs/hosting/web-request-logs-and-metrics">Cloud Logging</a>,
+      free<sup><a href="#firebase-logging-pricing">#</a></sup>
+    </td>
+  </tr>
+  <tr>
+    <td>Real-time logs</td>
+    <td>
+      <ul>
+        <li><a href="{{< ref "/docs/addons/cloudwatch/" >}}">CloudWatch Logs Insights</a>, free at small scale<sup><a href="#cloudwatch-logs-pricing">#</a></sup></li>
+        <li><a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/real-time-logs.html">CloudFront Real-Time Logs</a> via Kinesis, ~$10-12/mo<sup><a href="#cloudfront-realtime-logs-pricing">#</a></sup></li>
+      </ul>
+    </td>
+    <td>
+      Not available built-in.
+      <a href="https://docs.netlify.com/manage/monitoring/log-drains/">Log Drains</a>
+      forward to Datadog, Splunk, etc.;
+      Enterprise only (custom pricing).
+    </td>
+    <td>
+      Not available.
+      <a href="https://docs.aws.amazon.com/amplify/latest/userguide/access-logs.html">Access logs</a>
+      are delayed batch CSV downloads only.
+    </td>
+    <td>
+      <ul>
+        <li><a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/standard-logging.html">CloudWatch Logs Insights</a> via CloudFront standard logging v2, free at small scale<sup><a href="#cloudwatch-logs-pricing">#</a></sup></li>
+        <li><a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/real-time-logs.html">CloudFront Real-Time Logs</a> via Kinesis, ~$10-12/mo<sup><a href="#cloudfront-realtime-logs-pricing">#</a></sup></li>
+      </ul>
+    </td>
+    <td>
+      Not available.
+      No traffic logs exist for the static serving layer<sup><a href="#azure-no-static-logs">#</a></sup>.
+    </td>
+    <td>
+      <a href="https://firebase.google.com/docs/hosting/web-request-logs-and-metrics">Cloud Logging</a>,
+      free<sup><a href="#firebase-logging-pricing">#</a></sup>
+    </td>
+  </tr>
+  <tr>
+    <td>Observability dashboards</td>
+    <td>
+      <a href="{{< ref "/docs/addons/cloudwatch/" >}}">CloudWatch dashboards</a>,
+      free<sup><a href="#cloudwatch-dashboard-pricing">#</a></sup>
+    </td>
+    <td>
+      <a href="https://docs.netlify.com/manage/monitoring/observability/overview/">Netlify Observability</a>,
+      free-$20/member/mo<sup><a href="#netlify-observability-pricing">#</a></sup>
+    </td>
+    <td>
+      <a href="https://docs.aws.amazon.com/amplify/latest/userguide/monitoring-with-cloudwatch.html">CloudWatch metrics</a>
+      in Amplify console, free<sup><a href="#cloudwatch-dashboard-pricing">#</a></sup>
+    </td>
+    <td>
+      <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/monitoring-using-cloudwatch.html">CloudWatch dashboards</a>
+      + <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/reports.html">CloudFront built-in reports</a>,
+      free<sup><a href="#cloudwatch-dashboard-pricing">#</a></sup>
+    </td>
+    <td>
+      <a href="https://learn.microsoft.com/en-us/azure/static-web-apps/monitor">Azure Application Insights</a>,
+      free within 5 GB/mo<sup><a href="#azure-app-insights-pricing">#</a></sup>.
+      API functions only; no static serving metrics.
+    </td>
+    <td>
+      <a href="https://cloud.google.com/monitoring">Cloud Monitoring</a>,
       free<sup><a href="#firebase-logging-pricing">#</a></sup>
     </td>
   </tr>
@@ -450,6 +513,59 @@ type: passthru
       <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/georestrictions.html">geographic restrictions</a>
       are free and require no code, but apply to the entire distribution
       and return a generic 403. WAF geo match rules are more flexible.
+    </p>
+  </li>
+  <li id="cloudwatch-logs-pricing">
+    <p>
+      <a href="https://aws.amazon.com/cloudwatch/pricing/">CloudWatch Logs pricing</a>:
+      log ingestion is free for the first 5 GB/month, then $0.50/GB.
+      Log storage is $0.03/GB/month.
+      At small traffic volumes a personal site's logs are well within the free tier.
+    </p>
+  </li>
+  <li id="cloudwatch-dashboard-pricing">
+    <p>
+      <a href="https://aws.amazon.com/cloudwatch/pricing/">CloudWatch dashboard pricing</a>:
+      the first 3 dashboards (up to 50 metrics each) are free.
+      Additional dashboards cost $3/dashboard/month.
+      CloudFront and Amplify metrics published to CloudWatch are free.
+    </p>
+  </li>
+  <li id="netlify-observability-pricing">
+    <p>
+      <a href="https://docs.netlify.com/manage/monitoring/observability/overview/">Netlify Observability</a>
+      is included with all plans at no extra charge.
+      Data retention varies by plan: 24 hours on Free ($0) and Personal ($9/mo),
+      7 days on Pro ($20/member/mo), 30 days on Enterprise.
+      Raw log streaming via <a href="https://docs.netlify.com/manage/monitoring/log-drains/">Log Drains</a>
+      requires an Enterprise plan (custom pricing).
+    </p>
+  </li>
+  <li id="cloudfront-realtime-logs-pricing">
+    <p>
+      <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/real-time-logs.html">CloudFront Real-Time Logs</a>
+      cost $0.01 per million log lines from CloudFront,
+      but the dominant cost is <a href="https://aws.amazon.com/kinesis/data-streams/pricing/">Kinesis Data Streams</a>,
+      which charges per shard-hour (~$0.015/hr, ~$10.80/mo per shard)
+      plus $0.014 per million records.
+      Even a minimally-provisioned stream costs ~$10-12/mo, making this impractical for small sites.
+    </p>
+  </li>
+  <li id="azure-no-static-logs">
+    <p>
+      Azure Static Web Apps has no traffic logs for the static serving layer regardless of plan.
+      This is a <a href="https://github.com/Azure/static-web-apps/issues/1406">long-standing open issue</a>.
+      <a href="https://learn.microsoft.com/en-us/azure/static-web-apps/monitor">Application Insights</a>
+      is available but only captures API function invocations, not CDN-served static file requests.
+    </p>
+  </li>
+  <li id="azure-app-insights-pricing">
+    <p>
+      <a href="https://azure.microsoft.com/en-us/pricing/details/monitor/">Azure Application Insights pricing</a>:
+      the first 5 GB/month of data ingestion is free,
+      then ~$2.30-2.76/GB depending on region.
+      Default retention is 90 days at no extra charge.
+      Note this only covers API function telemetry, not static content traffic.
     </p>
   </li>
 </ol>

@@ -1,8 +1,10 @@
 ---
-title: Athena access logs
+title: Athena historical log analysis
 ---
 
-You can use AWS Athena to get access logs.
+You can use AWS Athena to query historical access logs.
+Athena queries run against logs stored in S3 and are best for trend analysis, long-term reporting, and ad-hoc investigation across large date ranges.
+For real-time log queries and observability dashboards, see [CloudWatch]({{< ref "/docs/addons/cloudwatch/" >}}).
 
 ## Deploying Athena
 
