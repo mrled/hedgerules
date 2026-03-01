@@ -350,6 +350,35 @@ Resources:
         ORDER BY requests DESC
         LIMIT 25
 
+  ErrorDetailQuery:
+    Type: AWS::Athena::NamedQuery
+    Properties:
+      Name: !Sub "${AWS::StackName}-error-detail"
+      Description: Individual error requests with client info for investigation
+      WorkGroup: !Ref AthenaWorkGroup
+      Database: !Ref AthenaDatabase
+      QueryString: !Sub |
+        SELECT log_date,
+               log_time,
+               status_code,
+               http_method,
+               uri_stem,
+               query_string,
+               url_decode(referer) as referer,
+               client_ip,
+               url_decode(forwarded_for) as forwarded_for,
+               url_decode(user_agent) as user_agent,
+               edge_location,
+               edge_result_type,
+               edge_detailed_result_type,
+               edge_request_id,
+               time_taken,
+               bytes_sent
+        FROM ${AthenaDatabaseName}.cloudfront_access_logs
+        WHERE status_code >= 400
+        ORDER BY log_date DESC, log_time DESC
+        LIMIT 500
+
 Outputs:
   ContentBucketName:
     Value: !Ref ContentBucket

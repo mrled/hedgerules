@@ -128,13 +128,19 @@ Resources:
               "height": 6,
               "properties": {
                 "metrics": [
-                  ["AWS/CloudFront", "Requests", "DistributionId", "${Distribution}", "Region", "Global"]
+                  ["AWS/CloudFront", "Requests", "DistributionId", "${Distribution}", "Region", "Global", {"id": "req", "visible": false, "stat": "Sum"}],
+                  ["AWS/CloudFront", "4xxErrorRate", "DistributionId", "${Distribution}", "Region", "Global", {"id": "r4xx", "visible": false, "stat": "Average"}],
+                  ["AWS/CloudFront", "5xxErrorRate", "DistributionId", "${Distribution}", "Region", "Global", {"id": "r5xx", "visible": false, "stat": "Average"}],
+                  [{"expression": "req", "label": "All", "id": "all", "color": "#aec7e8"}],
+                  [{"expression": "req * (100 - r4xx - r5xx) / 100", "label": "2xx+3xx", "id": "ok", "color": "#2ca02c"}],
+                  [{"expression": "req * r4xx / 100", "label": "4xx", "id": "e4xx", "color": "#ff7f0e"}],
+                  [{"expression": "req * r5xx / 100", "label": "5xx", "id": "e5xx", "color": "#d62728"}]
                 ],
                 "period": 300,
-                "stat": "Sum",
                 "region": "us-east-1",
                 "title": "Requests",
-                "view": "timeSeries"
+                "view": "timeSeries",
+                "yAxis": { "left": { "min": 0 } }
               }
             },
             {
