@@ -113,6 +113,34 @@ Resources:
 
         PriceClass: PriceClass_100
 
+  # --- CloudWatch Logs delivery (standard logging v2) ---
+
+  CloudFrontLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/cloudfront/${AWS::StackName}"
+      RetentionInDays: 30
+
+  CloudFrontLogsDeliverySource:
+    Type: AWS::Logs::DeliverySource
+    Properties:
+      Name: !Sub "${AWS::StackName}-source"
+      ResourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}"
+      LogType: ACCESS_LOGS
+
+  CloudFrontLogsDeliveryDestination:
+    Type: AWS::Logs::DeliveryDestination
+    Properties:
+      Name: !Sub "${AWS::StackName}-destination"
+      DestinationResourceArn: !GetAtt CloudFrontLogGroup.Arn
+      OutputFormat: json
+
+  CloudFrontLogsDelivery:
+    Type: AWS::Logs::Delivery
+    Properties:
+      DeliverySourceName: !Ref CloudFrontLogsDeliverySource
+      DeliveryDestinationArn: !GetAtt CloudFrontLogsDeliveryDestination.Arn
+
   CloudFrontDashboard:
     Type: AWS::CloudWatch::Dashboard
     Properties:
@@ -194,6 +222,110 @@ Resources:
                 "region": "us-east-1",
                 "title": "Total Error Rate",
                 "view": "singleValue"
+              }
+            },
+            {
+              "type": "log",
+              "x": 0,
+              "y": 12,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "query": "SOURCE '/aws/cloudfront/${AWS::StackName}' | fields @timestamp, `cs-uri-stem`, `sc-status`, `c-ip` | filter `sc-status` >= 400 | sort @timestamp desc | limit 50",
+                "region": "${AWS::Region}",
+                "title": "Recent Errors",
+                "view": "table"
+              }
+            },
+            {
+              "type": "log",
+              "x": 12,
+              "y": 12,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "query": "SOURCE '/aws/cloudfront/${AWS::StackName}' | stats count(*) as requests by `cs-uri-stem` | sort requests desc | limit 25",
+                "region": "${AWS::Region}",
+                "title": "Top Pages",
+                "view": "table"
+              }
+            },
+            {
+              "type": "log",
+              "x": 0,
+              "y": 18,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "query": "SOURCE '/aws/cloudfront/${AWS::StackName}' | filter `cs-user-agent` like \"gptbot\" or `cs-user-agent` like \"claudebot\" or `cs-user-agent` like \"bytespider\" or `cs-user-agent` like \"ccbot\" or `cs-user-agent` like \"perplexitybot\" or `cs-user-agent` like \"amazonbot\" or `cs-user-agent` like \"google-extended\" | stats count(*) as requests by `cs-user-agent` | sort requests desc | limit 25",
+                "region": "${AWS::Region}",
+                "title": "Bot Traffic",
+                "view": "table"
+              }
+            },
+            {
+              "type": "log",
+              "x": 12,
+              "y": 18,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "query": "SOURCE '/aws/cloudfront/${AWS::StackName}' | stats count(*) as requests by bin(1h) | sort @timestamp asc",
+                "region": "${AWS::Region}",
+                "title": "Traffic Over Time",
+                "view": "timeSeries"
+              }
+            },
+            {
+              "type": "log",
+              "x": 0,
+              "y": 24,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "query": "SOURCE '/aws/cloudfront/${AWS::StackName}' | filter `cs-referer` != '-' | stats count(*) as requests by `cs-referer` | sort requests desc | limit 25",
+                "region": "${AWS::Region}",
+                "title": "Top Referrers",
+                "view": "table"
+              }
+            },
+            {
+              "type": "log",
+              "x": 12,
+              "y": 24,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "query": "SOURCE '/aws/cloudfront/${AWS::StackName}' | stats sum(`sc-bytes`) as bytes by `cs-uri-stem` | sort bytes desc | limit 25",
+                "region": "${AWS::Region}",
+                "title": "Bandwidth by Page",
+                "view": "table"
+              }
+            },
+            {
+              "type": "log",
+              "x": 0,
+              "y": 30,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "query": "SOURCE '/aws/cloudfront/${AWS::StackName}' | stats count(*) as requests by `x-edge-location` | sort requests desc | limit 25",
+                "region": "${AWS::Region}",
+                "title": "Edge Locations",
+                "view": "table"
+              }
+            },
+            {
+              "type": "log",
+              "x": 12,
+              "y": 30,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "query": "SOURCE '/aws/cloudfront/${AWS::StackName}' | stats count(*) as requests by `x-edge-result-type` | sort requests desc",
+                "region": "${AWS::Region}",
+                "title": "Cache Hit/Miss Breakdown",
+                "view": "table"
               }
             }
           ]
