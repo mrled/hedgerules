@@ -91,6 +91,7 @@ Resources:
                   - cloudfront:DescribeKeyValueStore
                   - cloudfront:ListKeyValueStores
                   - cloudfront:ListTagsForResource
+                  - cloudfront:AllowVendedLogDeliveryForResource
                 Resource: "*"
               - Sid: AllowIAMGroupManagement
                 Effect: Allow
@@ -129,6 +130,39 @@ Resources:
                   - cloudwatch:PutDashboard
                   - cloudwatch:DeleteDashboards
                   - cloudwatch:GetDashboard
+                Resource: "*"
+              - Sid: AllowCloudWatchLogsManagement
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:DeleteLogGroup
+                  - logs:DescribeLogGroups
+                  - logs:PutRetentionPolicy
+                  - logs:PutDeliverySource
+                  - logs:GetDeliverySource
+                  - logs:DeleteDeliverySource
+                  - logs:DescribeDeliverySources
+                  - logs:PutDeliveryDestination
+                  - logs:GetDeliveryDestination
+                  - logs:DeleteDeliveryDestination
+                  - logs:PutDeliveryDestinationPolicy
+                  - logs:DescribeDeliveryDestinations
+                  - logs:CreateDelivery
+                  - logs:GetDelivery
+                  - logs:DeleteDelivery
+                  - logs:DescribeDeliveries
+                  - logs:UpdateDeliveryConfiguration
+                  - logs:GetDeliveryDestinationPolicy
+                  - logs:DeleteDeliveryDestinationPolicy
+                  - logs:PutResourcePolicy
+                  - logs:DescribeResourcePolicies
+                  - logs:DeleteResourcePolicy
+                  - logs:ListTagsForResource
+                  - logs:ListTagsLogGroup
+                  - logs:TagResource
+                  - logs:UntagResource
+                  - logs:TagLogGroup
+                  - logs:UntagLogGroup
                 Resource: "*"
 
         - PolicyName: DeployerGroupMembership
