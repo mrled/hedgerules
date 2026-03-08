@@ -156,6 +156,15 @@ type: passthru
     <td>None</td>
   </tr>
   <tr>
+    <td>Redirects &amp; headers cost</td>
+    <td>&lt;$1.00/mo<sup><a href="#kvs-pricing">#</a></sup></td>
+    <td>Free</td>
+    <td>Free</td>
+    <td>Free</td>
+    <td>Free</td>
+    <td>Free</td>
+  </tr>
+  <tr>
     <td>Deployment methods</td>
     <td>
       <code>hugo deploy && hedgerules deploy</code>
@@ -557,6 +566,15 @@ type: passthru
       This is a <a href="https://github.com/Azure/static-web-apps/issues/1406">long-standing open issue</a>.
       <a href="https://learn.microsoft.com/en-us/azure/static-web-apps/monitor">Application Insights</a>
       is available but only captures API function invocations, not CDN-served static file requests.
+    </p>
+  </li>
+  <li id="kvs-pricing">
+    <p>
+      Hedgerules stores redirects and headers in
+      <a href="https://aws.amazon.com/cloudfront/pricing/">CloudFront KeyValueStore</a>,
+      which charges $0.03 per million reads (at request time) and $1.00 per 1,000 writes (at deploy time).
+      For small sites this will be negligible.
+      See <a href="/docs/aws/pricing/">Pricing Estimation</a> for a detailed breakdown.
     </p>
   </li>
   <li id="azure-app-insights-pricing">
