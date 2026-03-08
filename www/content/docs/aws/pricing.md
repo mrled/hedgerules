@@ -106,7 +106,25 @@ Would generate at most **95 redirects KVS entries** and **4 headers KVS entries*
 With 50 operations per API call per store,
 this is three API calls:
 - two against the redirects KVS to handle 80+15 entries
-- one against the headers KVS to handle 4 entries5
+- one against the headers KVS to handle 4 entries
+
+### Reads during deployment
+
+Before writing, `hedgerules deploy` reads the full existing state of each KVS store to compute a diff.
+Per store this requires:
+
+- 1 `DescribeKeyValueStore` call (fetches the ETag needed for the subsequent write)
+- &lceil;N&divide;50&rceil; `ListKeys` calls, where N is the number of existing entries (page size: 50)
+
+#### Example
+
+For the same site (95 redirect entries, 4 header entries, on a typical non-first deploy):
+
+- Redirects KVS: 1 describe + 2 list calls (&lceil;95&divide;50&rceil;&nbsp;=&nbsp;2)
+- Headers KVS: 1 describe + 1 list call (&lceil;4&divide;50&rceil;&nbsp;=&nbsp;1)
+- Total: **6 read calls** per deploy
+
+At $0.03/1M reads this cost is negligible.
 
 ### Reads per request
 

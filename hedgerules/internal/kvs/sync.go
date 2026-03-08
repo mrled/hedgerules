@@ -62,13 +62,15 @@ func FetchExistingKeys(ctx context.Context, client KVSClient, kvsARN string, max
 
 	existing := make(map[string]string)
 	var nextToken *string
+	maxResults := int32(50)
 	for {
 		var resp *cloudfrontkeyvaluestore.ListKeysOutput
 		err := retry.Do(maxRetries, func() error {
 			var e error
 			resp, e = client.ListKeys(ctx, &cloudfrontkeyvaluestore.ListKeysInput{
-				KvsARN:    &kvsARN,
-				NextToken: nextToken,
+				KvsARN:     &kvsARN,
+				NextToken:  nextToken,
+				MaxResults: &maxResults,
 			})
 			return e
 		})
