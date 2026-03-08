@@ -229,25 +229,27 @@ func runDeploy(args []string) {
 
 	// Step 6: Sync redirects KVS
 	fmt.Fprintf(os.Stderr, "Syncing redirects KVS...\n")
-	existingRedirects, redirectEtag, err := kvs.FetchExistingKeys(ctx, kvsClient, redirectsARN, cfg.MaxRetries)
+	redirectsCounter := &kvs.CountingKVSClient{Client: kvsClient}
+	existingRedirects, redirectEtag, err := kvs.FetchExistingKeys(ctx, redirectsCounter, redirectsARN, cfg.MaxRetries)
 	if err != nil {
 		fatal("fetching existing redirects: %v", err)
 	}
 	redirectPlan := kvs.ComputeSyncPlan(redirectData, existingRedirects)
 	fmt.Fprintf(os.Stderr, "Redirects: %d puts, %d deletes\n", len(redirectPlan.Puts), len(redirectPlan.Deletes))
-	if err := kvs.Sync(ctx, kvsClient, redirectsARN, redirectEtag, redirectPlan, cfg.MaxRetries); err != nil {
+	if err := kvs.Sync(ctx, redirectsCounter, redirectsARN, redirectEtag, redirectPlan, cfg.MaxRetries); err != nil {
 		fatal("syncing redirects: %v", err)
 	}
 
 	// Step 7: Sync headers KVS
 	fmt.Fprintf(os.Stderr, "Syncing headers KVS...\n")
-	existingHeaders, headerEtag, err := kvs.FetchExistingKeys(ctx, kvsClient, headersARN, cfg.MaxRetries)
+	headersCounter := &kvs.CountingKVSClient{Client: kvsClient}
+	existingHeaders, headerEtag, err := kvs.FetchExistingKeys(ctx, headersCounter, headersARN, cfg.MaxRetries)
 	if err != nil {
 		fatal("fetching existing headers: %v", err)
 	}
 	headerPlan := kvs.ComputeSyncPlan(headerData, existingHeaders)
 	fmt.Fprintf(os.Stderr, "Headers: %d puts, %d deletes\n", len(headerPlan.Puts), len(headerPlan.Deletes))
-	if err := kvs.Sync(ctx, kvsClient, headersARN, headerEtag, headerPlan, cfg.MaxRetries); err != nil {
+	if err := kvs.Sync(ctx, headersCounter, headersARN, headerEtag, headerPlan, cfg.MaxRetries); err != nil {
 		fatal("syncing headers: %v", err)
 	}
 
@@ -264,6 +266,9 @@ func runDeploy(args []string) {
 		fatal("deploying viewer-response function: %v", err)
 	}
 
+	fmt.Fprintf(os.Stderr, "\nKVS API calls:\n")
+	fmt.Fprintf(os.Stderr, "  Redirects KVS: %d\n", redirectsCounter.Calls)
+	fmt.Fprintf(os.Stderr, "  Headers KVS:   %d\n", headersCounter.Calls)
 	fmt.Fprintf(os.Stderr, "\nDeploy complete.\n")
 }
 
