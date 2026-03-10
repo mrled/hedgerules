@@ -31,7 +31,7 @@ You also need to register the output format in your `hugo.toml`:
   home = ["HTML", "hedgeheaders", "hedgeredirects"]
 ```
 
-The output format definitions are provided by the theme. If you're not using the theme, see the [Configuration Reference](/docs/configuration/) for the full output format config.
+The output format definitions are provided by the theme. If you're not using the theme, see the [Configuration Reference](/docs/themes/configuration/) for the full output format config.
 
 ## 3. Configure headers in hugo.toml
 
