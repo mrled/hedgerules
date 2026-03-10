@@ -26,9 +26,9 @@ jobs:
             goarch: arm64
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version-file: hedgerules/go.mod
 
@@ -51,7 +51,7 @@ jobs:
           go build -ldflags "-X main.version=${{ steps.version.outputs.version }}" \
             -o "../hedgerules-${GOOS}-${GOARCH}${ext}" ./cmd/hedgerules
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: hedgerules-${{ matrix.goos }}-${{ matrix.goarch }}
           path: hedgerules-*
@@ -60,7 +60,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: artifacts
           merge-multiple: true
