@@ -178,7 +178,7 @@ aws cloudformation deploy \
 hugo
 
 # Stage 3: create functions + sync edge data
-hedgerules deploy --site public/
+hedgerules deploy -output-dir public/
 
 # Stage 4: distribution (references functions from stage 3)
 aws cloudformation deploy \
@@ -195,7 +195,7 @@ See [`examples/micahrlweb/`](https://github.com/mrled/hedgerules/tree/master/exa
 
 ```sh
 hugo                              # Stage 2
-hedgerules deploy --site public/  # Stage 3
+hedgerules deploy -output-dir public/  # Stage 3
 hugo deploy --target mysite       # Stage 5
 ```
 
