@@ -22,7 +22,7 @@ go install github.com/mrled/hedgerules/hedgerules/cmd/hedgerules@latest
 
 ## 2. Add the _hedge_headers.json template
 
-Copy the `index.hedgeheaders.json` layout from the Hedgerules example site into your Hugo site's `layouts/` directory. This template generates a `_hedge_headers.json` file in your build output that maps URL paths to HTTP response headers.
+Copy the [`index.hedgeheaders.json`](https://raw.githubusercontent.com/mrled/hedgerules/refs/heads/master/examples/micahrlweb/index.cfheader.json) file template from the Hedgerules example site into your Hugo site's `layouts/` directory. This template generates a `_hedge_headers.json` file in your build output that maps URL paths to HTTP response headers.
 
 You also need to register the output format in your `hugo.toml`:
 
