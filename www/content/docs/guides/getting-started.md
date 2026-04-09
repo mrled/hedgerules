@@ -65,7 +65,7 @@ This produces `public/` with `_hedge_headers.json` and `_hedge_redirects.txt` al
 ## 5. Deploy edge rules
 
 ```sh
-hedgerules deploy --site public/
+hedgerules deploy -output-dir public/
 ```
 
 This creates (or updates) the CloudFront Functions and KVS entries for redirects and headers.

@@ -50,7 +50,7 @@ Two CloudFront Functions:
 `hedgerules deploy` handles the CloudFront Functions and KVS for you:
 
 ```sh
-hedgerules deploy --site public/
+hedgerules deploy -output-dir public/
 ```
 
 This command:
