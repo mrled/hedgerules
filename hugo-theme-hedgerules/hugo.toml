@@ -1,6 +1,6 @@
 [module]
   [module.hugoVersion]
-    min = "0.128.0"
+    min = "0.156.0"
 
 # Output formats for Hedgerules.
 # The theme defines these so sites that import it get them automatically.
