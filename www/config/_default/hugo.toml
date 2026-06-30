@@ -1,5 +1,5 @@
 baseURL = "https://example.com/"
-languageCode = "en-us"
+locale = "en-us"
 title = "Hedgerules"
 
 [module]
@@ -15,6 +15,9 @@ title = "Hedgerules"
 # The theme defines the formats; this tells Hugo to generate them.
 [outputs]
   home = ["HTML", "hedgeheaders", "hedgeredirects"]
+
+[security]
+  allowContent = ["text/markdown", "text/html"]
 
 [markup]
   [markup.goldmark]
